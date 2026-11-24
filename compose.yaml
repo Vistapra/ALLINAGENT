@@ -1,0 +1,323 @@
+# ==============================================================================
+# ALLINAGENT — Base Multi-Container Orchestration Stack (`compose.yaml`)
+# Namespace: `allinagent`
+# Networks : `allinagent_edge` (192.168.240.0/24) + `allinagent_data` (192.168.241.0/24, internal)
+# Storage  : Host bind-mounts under `${ALLINAGENT_DATA_DIR:-./data}` (prune-immune)
+# ==============================================================================
+
+name: allinagent
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: allinagent-postgres
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - allinagent_data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-paperclip}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-paperclip}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: ${TIMEZONE:-UTC}
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-./data}/postgres:/var/lib/postgresql/data
+      - ./deploy/docker/postgresql-lowmem.conf:/etc/postgresql/postgresql.conf:ro
+    command:
+      - "postgres"
+      - "-c"
+      - "config_file=/etc/postgresql/postgresql.conf"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-paperclip} -d $${POSTGRES_DB:-paperclip}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 6
+
+  vulnclaw:
+    image: ${ALLINAGENT_REGISTRY:-ghcr.io}/${ALLINAGENT_IMAGE_NAMESPACE:-vistapra}/allinagent-vulnclaw:${ALLINAGENT_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: deploy/docker/vulnclaw.Dockerfile
+    container_name: allinagent-vulnclaw
+    restart: unless-stopped
+    logging: *default-logging
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777,noexec,nosuid,nodev
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - allinagent_data
+    environment:
+      VULNCLAW_DEFENSIVE_ONLY: "1"
+      VULNCLAW_BIND_HOST: "0.0.0.0"
+      VULNCLAW_HOST: "0.0.0.0"
+      VULNCLAW_PORT: "8660"
+      VULNCLAW_CONFIG_DIR: "/opt/vulnclaw-config"
+      VULNCLAW_DATA_DIR: "/var/lib/vulnclaw"
+      VULNCLAW_WORKSPACES_DIR: "/workspaces"
+      AUTHORIZED_WORKSPACES: "/workspaces:/var/lib/allinagent/workspaces"
+      ALLINAGENT_INTERNAL_TOKEN: ${ALLINAGENT_INTERNAL_TOKEN:?ALLINAGENT_INTERNAL_TOKEN is required}
+      VULNCLAW_SCAN_TOKEN: ${ALLINAGENT_INTERNAL_TOKEN}
+      TZ: ${TIMEZONE:-UTC}
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-./data}/vulnclaw:/var/lib/vulnclaw
+      - ${ALLINAGENT_WORKSPACES_DIR:-./data/workspaces}:/workspaces:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-./data/workspaces}:/var/lib/allinagent/workspaces:ro
+    healthcheck:
+      test:
+        - "CMD"
+        - "/opt/vulnclaw-venv/bin/python"
+        - "/opt/allinagent/components/vulnclaw/vulnclaw_worker.py"
+        - "health"
+        - "--probe-http"
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  hermes:
+    image: ${ALLINAGENT_REGISTRY:-ghcr.io}/${ALLINAGENT_IMAGE_NAMESPACE:-vistapra}/allinagent-hermes:${ALLINAGENT_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: deploy/docker/hermes.Dockerfile
+    container_name: allinagent-hermes
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - allinagent_edge
+      - allinagent_data
+    environment:
+      ALLINAGENT_DOCKER: "1"
+      HERMES_SOURCE_DIR: "/opt/allinagent/vendor/hermes-agent"
+      HERMES_HOME: "/var/lib/allinagent/hermes"
+      HERMES_DATA_ROOT: "/var/lib/allinagent/hermes"
+      HERMES_PROFILES_ROOT: "/var/lib/allinagent/hermes/profiles"
+      ALLINAGENT_WORKSPACE_ROOT: "/var/lib/allinagent/workspaces"
+      ALLINAGENT_REPORTS_ROOT: "/var/lib/allinagent/reports"
+      ALLINAGENT_SECRETS_DIR: "/var/lib/allinagent/secrets"
+      HERMES_EXEC_HOST: "0.0.0.0"
+      HERMES_EXEC_PORT: "8650"
+      ALLINAGENT_INTERNAL_TOKEN: ${ALLINAGENT_INTERNAL_TOKEN:?ALLINAGENT_INTERNAL_TOKEN is required}
+      HERMES_EXEC_SHARED_SECRET: ${ALLINAGENT_INTERNAL_TOKEN}
+      VULNCLAW_SCAN_TOKEN: ${ALLINAGENT_INTERNAL_TOKEN}
+      OFFICE_BRIDGE_TOKEN: ${OFFICE_BRIDGE_TOKEN:?OFFICE_BRIDGE_TOKEN is required}
+      HEAVY_WORKER_CONCURRENCY: ${HEAVY_WORKER_CONCURRENCY:-1}
+      PAPERCLIP_BASE_URL: "http://paperclip:3100"
+      PAPERCLIP_URL: "http://paperclip:3100"
+      OFFICE_BRIDGE_HTTP_URL: "http://office-bridge:3210"
+      VULNCLAW_WORKER_URL: "http://vulnclaw:8660"
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      CUSTOM_API_KEY: ${CUSTOM_API_KEY:-}
+      OPENAI_API_KEY: ${CUSTOM_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      OWNER_TELEGRAM_ID: ${OWNER_TELEGRAM_ID:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
+      UNIFIED_COMPANY_GOVERNANCE: ${UNIFIED_COMPANY_GOVERNANCE:-1}
+      TZ: ${TIMEZONE:-UTC}
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-./data}/hermes:/var/lib/allinagent/hermes
+      - ${ALLINAGENT_DATA_DIR:-./data}/reports:/var/lib/allinagent/reports
+      - ${ALLINAGENT_DATA_DIR:-./data}/secrets:/var/lib/allinagent/secrets:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-./data/workspaces}:/var/lib/allinagent/workspaces
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8650/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  paperclip:
+    image: ${ALLINAGENT_REGISTRY:-ghcr.io}/${ALLINAGENT_IMAGE_NAMESPACE:-vistapra}/allinagent-paperclip:${ALLINAGENT_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: deploy/docker/paperclip.Dockerfile
+    container_name: allinagent-paperclip
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      hermes:
+        condition: service_healthy
+    networks:
+      - allinagent_edge
+      - allinagent_data
+    ports:
+      - "127.0.0.1:${PAPERCLIP_PORT:-8201}:3100"
+    environment:
+      NODE_ENV: "production"
+      ALLINAGENT_DOCKER: "1"
+      HOST: "0.0.0.0"
+      PORT: "3100"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-paperclip}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-paperclip}
+      PAPERCLIP_APP_DIR: "/opt/paperclip"
+      PAPERCLIP_HOME: "/var/lib/allinagent/paperclip"
+      PAPERCLIP_DEPLOYMENT_MODE: ${PAPERCLIP_DEPLOYMENT_MODE:-local_trusted}
+      PAPERCLIP_ALLOWED_HOSTNAMES: ${PAPERCLIP_ALLOWED_HOSTNAMES:-paperclip,allinagent-paperclip,localhost,127.0.0.1,host.docker.internal}
+      ALLINAGENT_WORKSPACE_ROOT: "/var/lib/allinagent/workspaces"
+      ALLINAGENT_REPORTS_ROOT: "/var/lib/allinagent/reports"
+      ALLINAGENT_SECRETS_DIR: "/var/lib/allinagent/secrets"
+      HERMES_REMOTE_EXEC_URL: "http://hermes:8650"
+      HERMES_EXEC_URL: "http://hermes:8650"
+      ALLINAGENT_INTERNAL_TOKEN: ${ALLINAGENT_INTERNAL_TOKEN:?ALLINAGENT_INTERNAL_TOKEN is required}
+      HERMES_EXEC_SHARED_SECRET: ${ALLINAGENT_INTERNAL_TOKEN}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET is required}
+      PAPERCLIP_AGENT_JWT_SECRET: ${PAPERCLIP_AGENT_JWT_SECRET:?PAPERCLIP_AGENT_JWT_SECRET is required}
+      PAPERCLIP_TOOL_ACTION_SIGNING_SECRET: ${PAPERCLIP_TOOL_ACTION_SIGNING_SECRET:?PAPERCLIP_TOOL_ACTION_SIGNING_SECRET is required}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      CUSTOM_API_KEY: ${CUSTOM_API_KEY:-}
+      TZ: ${TIMEZONE:-UTC}
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-./data}/paperclip:/var/lib/allinagent/paperclip
+      - ${ALLINAGENT_DATA_DIR:-./data}/reports:/var/lib/allinagent/reports
+      - ${ALLINAGENT_DATA_DIR:-./data}/secrets:/var/lib/allinagent/secrets:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-./data/workspaces}:/var/lib/allinagent/workspaces
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3100/api/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      start_period: 35s
+      retries: 3
+
+  office-bridge:
+    image: ${ALLINAGENT_REGISTRY:-ghcr.io}/${ALLINAGENT_IMAGE_NAMESPACE:-vistapra}/allinagent-office-bridge:${ALLINAGENT_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: deploy/docker/office-bridge.Dockerfile
+    container_name: allinagent-office-bridge
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      paperclip:
+        condition: service_healthy
+      hermes:
+        condition: service_healthy
+      vulnclaw:
+        condition: service_healthy
+    networks:
+      - allinagent_edge
+      - allinagent_data
+    ports:
+      - "127.0.0.1:${OFFICE_BRIDGE_PORT:-8202}:3210"
+    environment:
+      NODE_ENV: "production"
+      ALLINAGENT_DOCKER: "1"
+      OFFICE_BRIDGE_ALLOW_DOCKER_NETWORK: "1"
+      OFFICE_BRIDGE_ALLOW_CONTAINER_BIND: "1"
+      ALLINAGENT_SECRETS_DIR: "/var/lib/allinagent/secrets"
+      ALLINAGENT_WORKSPACE_ROOT: "/var/lib/allinagent/workspaces"
+      ALLINAGENT_REPORTS_ROOT: "/var/lib/allinagent/reports"
+      OFFICE_BRIDGE_HOST: "0.0.0.0"
+      OFFICE_BRIDGE_PORT: "3210"
+      HERMES3D_BASE_URL: "http://office:3200"
+      OFFICE_BRIDGE_ALLOWED_ORIGINS: "http://office:3200,http://office-bridge:3210,http://127.0.0.1:${OFFICE_PORT:-8200},http://localhost:${OFFICE_PORT:-8200},http://127.0.0.1:3200,http://localhost:3200"
+      PAPERCLIP_BASE_URL: "http://paperclip:3100"
+      PAPERCLIP_URL: "http://paperclip:3100"
+      HERMES_REMOTE_EXEC_URL: "http://hermes:8650"
+      HERMES_EXEC_URL: "http://hermes:8650"
+      ALLINAGENT_INTERNAL_TOKEN: ${ALLINAGENT_INTERNAL_TOKEN:?ALLINAGENT_INTERNAL_TOKEN is required}
+      HERMES_EXEC_SHARED_SECRET: ${ALLINAGENT_INTERNAL_TOKEN}
+      VULNCLAW_SCAN_TOKEN: ${ALLINAGENT_INTERNAL_TOKEN}
+      VULNCLAW_WORKER_URL: "http://vulnclaw:8660"
+      OFFICE_BRIDGE_TOKEN: ${OFFICE_BRIDGE_TOKEN:?OFFICE_BRIDGE_TOKEN is required}
+      STUDIO_ACCESS_TOKEN: ${STUDIO_ACCESS_TOKEN:?STUDIO_ACCESS_TOKEN is required}
+      OWNER_TELEGRAM_ID: ${OWNER_TELEGRAM_ID:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      UNIFIED_COMPANY_GOVERNANCE: ${UNIFIED_COMPANY_GOVERNANCE:-1}
+      TZ: ${TIMEZONE:-UTC}
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-./data}/office-data:/var/lib/allinagent/office-data
+      - ${ALLINAGENT_DATA_DIR:-./data}/reports:/var/lib/allinagent/reports
+      - ${ALLINAGENT_DATA_DIR:-./data}/secrets:/var/lib/allinagent/secrets:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-./data/workspaces}:/var/lib/allinagent/workspaces
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3210/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  office:
+    image: ${ALLINAGENT_REGISTRY:-ghcr.io}/${ALLINAGENT_IMAGE_NAMESPACE:-vistapra}/allinagent-office:${ALLINAGENT_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: deploy/docker/office.Dockerfile
+    container_name: allinagent-office
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      office-bridge:
+        condition: service_healthy
+    networks:
+      - allinagent_edge
+    ports:
+      - "127.0.0.1:${OFFICE_PORT:-8200}:3200"
+    environment:
+      NODE_ENV: "production"
+      NEXT_TELEMETRY_DISABLED: "1"
+      ALLINAGENT_DOCKER: "1"
+      HOST: "0.0.0.0"
+      PORT: "3200"
+      AUTHORIZED_WORKSPACES: "/var/lib/allinagent/workspaces"
+      ALLINAGENT_WORKSPACE_ROOT: "/var/lib/allinagent/workspaces"
+      ALLINAGENT_SECRETS_DIR: "/var/lib/allinagent/secrets"
+      STUDIO_ACCESS_TOKEN: ${STUDIO_ACCESS_TOKEN:?STUDIO_ACCESS_TOKEN is required}
+      OFFICE_BRIDGE_TOKEN: ${OFFICE_BRIDGE_TOKEN:?OFFICE_BRIDGE_TOKEN is required}
+      OFFICE_BRIDGE_HTTP_URL: "http://office-bridge:3210"
+      OFFICE_BRIDGE_WS_URL: "ws://office-bridge:3210/ws"
+      HERMES_STATE_DIR: "/var/lib/allinagent/studio-state"
+      UNIFIED_COMPANY_GOVERNANCE: ${UNIFIED_COMPANY_GOVERNANCE:-1}
+      CUSTOM_RUNTIME_ALLOWLIST: "office-bridge:3210,127.0.0.1:3210,localhost:3210"
+      TZ: ${TIMEZONE:-UTC}
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-./data}/studio-state:/var/lib/allinagent/studio-state
+      - ${ALLINAGENT_DATA_DIR:-./data}/office-secrets:/var/lib/allinagent/secrets:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-./data/workspaces}:/var/lib/allinagent/workspaces:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3200/api/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      start_period: 25s
+      retries: 3
+
+networks:
+  allinagent_edge:
+    name: allinagent_edge
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 192.168.240.0/24
+  allinagent_data:
+    name: allinagent_data
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 192.168.241.0/24

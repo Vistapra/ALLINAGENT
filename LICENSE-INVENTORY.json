@@ -1,0 +1,419 @@
+{
+  "schema_version": "1.1.0",
+  "product": "ALLINAGENT",
+  "product_version": "1.0.0",
+  "root_license_spdx": "MIT",
+  "generated_at": "2026-11-24T11:20:00Z",
+  "compliance_policy": {
+    "allow_strong_copyleft_in_distributed_artifacts": false,
+    "blocked_spdx_families": [
+      "AGPL-3.0-only",
+      "AGPL-3.0-or-later",
+      "GPL-2.0-only",
+      "GPL-2.0-or-later",
+      "GPL-3.0-only",
+      "GPL-3.0-or-later",
+      "SSPL-1.0",
+      "BUSL-1.1"
+    ],
+    "allow_commons_clause_bundling_in_git_or_ghcr": false,
+    "allow_unlicensed_repo_bundling_in_git_or_ghcr": false,
+    "allow_ooxml_third_party_xsd_bundling_in_git_or_ghcr": false,
+    "allow_non_osi_vendor_bundling_in_git_or_ghcr": false,
+    "require_40_char_git_commit_pins": true
+  },
+  "first_party_components": [
+    {
+      "name": "allinagent-core-manifests-and-cli",
+      "paths": [
+        "package.json",
+        "components.lock.json",
+        "compose.yaml",
+        "compose.production.yaml",
+        "config/",
+        "scripts/",
+        "deploy/",
+        "patches/",
+        "skills/"
+      ],
+      "license_spdx": "MIT",
+      "copyright": "Copyright (c) 2026 ALLINAGENT Contributors"
+    },
+    {
+      "name": "allinagent-office-bridge",
+      "paths": [
+        "apps/office-bridge/"
+      ],
+      "license_spdx": "MIT",
+      "copyright": "Copyright (c) 2026 ALLINAGENT Contributors"
+    },
+    {
+      "name": "allinagent-python-control-and-integrations",
+      "paths": [
+        "apps/control-center/",
+        "components/",
+        "integrations/",
+        "agents/"
+      ],
+      "license_spdx": "MIT",
+      "copyright": "Copyright (c) 2026 ALLINAGENT Contributors"
+    },
+    {
+      "name": "allinagent-enterprise-office-extensions",
+      "paths": [
+        "apps/hermes3d/src/features/enterprise-company/",
+        "apps/hermes3d/src/app/api/company/",
+        "apps/hermes3d/src/lib/avatars/multiavatar.ts"
+      ],
+      "license_spdx": "MIT",
+      "copyright": "Copyright (c) 2026 ALLINAGENT Contributors"
+    }
+  ],
+  "core_upstream_components": [
+    {
+      "id": "hermes-agent",
+      "upstream_repo": "https://github.com/NousResearch/hermes-agent.git",
+      "version": "0.23.3",
+      "tag": "v0.23.3",
+      "commit": "eb49b8920a25ffa7bb2fadf548fe819221ca79d7",
+      "license_spdx": "MIT",
+      "copyright": "Copyright (c) 2025 Nous Research",
+      "bundled_in_git": false,
+      "distribution_mode": "FETCHED_AT_BUILD_OR_SETUP_WITH_PATCH",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "id": "paperclip",
+      "upstream_repo": "https://github.com/paperclipai/paperclip.git",
+      "npm_spec": "paperclipai@2026.1117.0",
+      "version": "2026.1117.0",
+      "commit": "c0f132898d2a2677312d8c72096187b27a3d9a38",
+      "license_spdx": "MIT",
+      "copyright": "Copyright (c) 2025 Paperclip AI",
+      "bundled_in_git": false,
+      "patch_manifest": "patches/paperclip/patch-manifest.json",
+      "distribution_mode": "NPM_LOCKED_INSTALL_WITH_PATCH",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "id": "vulnclaw",
+      "upstream_repo": "https://github.com/Netw0rkNoob/VulnClaw.git",
+      "version": "0.4.1",
+      "tag": "v0.4.1",
+      "commit": "0b34878f84b089b21fcf85ecd445315f14df0672",
+      "license_spdx": "MIT",
+      "copyright": "Copyright (c) 2026 UncleC",
+      "bundled_in_git": false,
+      "distribution_mode": "ON_DEMAND_DEFENSIVE_ISOLATED_INSTALL",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "id": "hermes3d",
+      "upstream_repo": "https://github.com/iamlukethedev/Hermes3D.git",
+      "version": "1.0.0",
+      "tag": "v1.0.0",
+      "base_commit": "beb76292747b816ef317aa6f9a3992e0014f81d9",
+      "license_spdx": "MIT",
+      "copyright": "Copyright (c) 2026 Luke The Dev",
+      "bundled_in_git": true,
+      "subtree_path": "apps/hermes3d",
+      "distribution_mode": "BUNDLED_WITH_MIT_NOTICE_PRESERVED",
+      "compatibility": "COMPATIBLE"
+    }
+  ],
+  "bundled_public_assets": [
+    {
+      "name": "kenney-furniture-kit-3d-glb",
+      "path": "apps/hermes3d/public/office-assets/models/",
+      "license_spdx": "CC0-1.0",
+      "files_count": 17,
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "name": "office-env-1k-hdr",
+      "path": "apps/hermes3d/public/office-assets/env/office_env_1k.hdr",
+      "license_spdx": "CC0-1.0",
+      "files_count": 1,
+      "compatibility": "COMPATIBLE"
+    }
+  ],
+  "removed_or_excluded_non_osi_artifacts": [
+    {
+      "legacy_path": "apps/hermes3d/src/lib/avatars/vendor/multiavatar.js",
+      "legacy_license": "LicenseRef-Multiavatar-1.0",
+      "status": "REMOVED_AND_EXCLUDED",
+      "files_in_repo": 0,
+      "replacement_path": "apps/hermes3d/src/lib/avatars/multiavatar.ts",
+      "replacement_license_spdx": "MIT",
+      "reason": "Upstream vendor/multiavatar.js used custom non-OSI MULTIAVATAR LICENSE v1.0; permanently removed from ALLINAGENT and replaced by 100% self-contained MIT procedural SVG generator."
+    }
+  ],
+  "agent_skill_repositories": [
+    {
+      "repo": "getsentry/skills",
+      "url": "https://github.com/getsentry/skills",
+      "commit": "a582c51ee29d0f35e6ac321340796f77d43da733",
+      "license_spdx": "Apache-2.0",
+      "packages_count": 1,
+      "packages": [
+        "skill-scanner"
+      ],
+      "bundled_in_git": false,
+      "redistribution_policy": "ALLOW_WITH_ATTRIBUTION_OR_FETCH",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "repo": "alirezarezvani/claude-skills",
+      "url": "https://github.com/alirezarezvani/claude-skills",
+      "commit": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "license_spdx": "MIT",
+      "packages_count": 11,
+      "packages": [
+        "c-level-skills",
+        "ceo-advisor",
+        "ciso-advisor",
+        "compliance-os",
+        "cto-review",
+        "pw",
+        "pw-coverage",
+        "pw-fix",
+        "pw-generate",
+        "pw-report",
+        "pw-review"
+      ],
+      "bundled_in_git": false,
+      "redistribution_policy": "ALLOW_WITH_ATTRIBUTION_OR_FETCH",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "repo": "anthropics/skills",
+      "url": "https://github.com/anthropics/skills",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "license_spdx": "Apache-2.0",
+      "packages_count": 3,
+      "permissive_packages_count": 1,
+      "permissive_packages": [
+        "frontend-design"
+      ],
+      "fetch_only_packages_count": 2,
+      "fetch_only_packages": [
+        "docx",
+        "pdf"
+      ],
+      "packages": [
+        "frontend-design",
+        "docx",
+        "pdf"
+      ],
+      "bundled_in_git": false,
+      "bundled_in_ghcr": false,
+      "redistribution_policy_by_package": {
+        "frontend-design": "ALLOW_WITH_ATTRIBUTION_OR_FETCH",
+        "docx": "FETCH_FROM_UPSTREAM_ONLY",
+        "pdf": "FETCH_FROM_UPSTREAM_ONLY"
+      },
+      "restriction_reason": "frontend-design is pure Apache-2.0 (ALLOW_WITH_ATTRIBUTION_OR_FETCH). docx and pdf bundle third-party OOXML .xsd schema files with separate non-OSI terms and are therefore classified FETCH_FROM_UPSTREAM_ONLY.",
+      "strict_oss_offline_fallbacks": {
+        "docx": "NousResearch/hermes-agent bundled MIT skill: microsoft-office",
+        "pdf": "NousResearch/hermes-agent bundled MIT skill: pdf"
+      },
+      "compatibility": "COMPATIBLE_WITH_PER_SKILL_POLICY"
+    },
+    {
+      "repo": "anthropics/defending-code-reference-harness",
+      "url": "https://github.com/anthropics/defending-code-reference-harness",
+      "commit": "d3bea6b5793b5f3d59a75ebe69a58efa88383145",
+      "license_spdx": "Apache-2.0",
+      "packages_count": 3,
+      "packages": [
+        "anthropic-patch",
+        "anthropic-triage",
+        "threat-model"
+      ],
+      "bundled_in_git": false,
+      "redistribution_policy": "ALLOW_WITH_ATTRIBUTION_OR_FETCH",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "repo": "antonbabenko/terraform-skill",
+      "url": "https://github.com/antonbabenko/terraform-skill",
+      "commit": "f5a195992d84c8fb075b0176d666967cd07d2081",
+      "license_spdx": "Apache-2.0",
+      "packages_count": 1,
+      "packages": [
+        "terraform-skill"
+      ],
+      "bundled_in_git": false,
+      "redistribution_policy": "ALLOW_WITH_ATTRIBUTION_OR_FETCH",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "repo": "stacklok/toolhive-studio",
+      "url": "https://github.com/stacklok/toolhive-studio",
+      "commit": "4d87c91d49b881ccc7dc64667c1dce5a84c535d6",
+      "license_spdx": "Apache-2.0",
+      "packages_count": 1,
+      "packages": [
+        "security-vuln-remediation"
+      ],
+      "bundled_in_git": false,
+      "redistribution_policy": "ALLOW_WITH_ATTRIBUTION_OR_FETCH",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "repo": "fedius01/cve-triage",
+      "url": "https://github.com/fedius01/cve-triage",
+      "commit": "3517c8fb10531103c403f09143966d62b2a0790f",
+      "license_spdx": "MIT",
+      "packages_count": 1,
+      "packages": [
+        "cve-triage"
+      ],
+      "bundled_in_git": false,
+      "redistribution_policy": "ALLOW_WITH_ATTRIBUTION_OR_FETCH",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "repo": "secondsky/claude-skills",
+      "url": "https://github.com/secondsky/claude-skills",
+      "commit": "14966c3024f48eea0386eb970b230ea0f4bebd33",
+      "license_spdx": "MIT",
+      "packages_count": 1,
+      "packages": [
+        "secondsky-cybersecurity-ref"
+      ],
+      "bundled_in_git": false,
+      "redistribution_policy": "ALLOW_WITH_ATTRIBUTION_OR_FETCH",
+      "compatibility": "COMPATIBLE"
+    },
+    {
+      "repo": "borghei/Claude-Skills",
+      "url": "https://github.com/borghei/Claude-Skills",
+      "commit": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "license_spdx": "LicenseRef-MIT-Commons-Clause-1.0",
+      "upstream_license_label": "MIT-Commons-Clause-1.0",
+      "packages_count": 10,
+      "packages": [
+        "api-design-reviewer",
+        "ci-cd-pipeline-builder",
+        "cto-advisor",
+        "focused-fix",
+        "security-audit",
+        "senior-architect",
+        "senior-backend",
+        "senior-devops",
+        "senior-qa",
+        "senior-security"
+      ],
+      "bundled_in_git": false,
+      "bundled_in_ghcr": false,
+      "redistribution_policy": "FETCH_FROM_UPSTREAM_ONLY",
+      "restriction_reason": "Commons Clause License Condition v1.0 prohibits commercial sale/resale; never vendored or distributed in ALLINAGENT artifacts.",
+      "compatibility": "COMPLIANT_VIA_USER_FETCH_ONLY"
+    },
+    {
+      "repo": "vercel-labs/agent-skills",
+      "url": "https://github.com/vercel-labs/agent-skills",
+      "commit": "5a37a6329fbad3666c3207392a6a7c0110e92efb",
+      "license_spdx": "NOASSERTION",
+      "packages_count": 1,
+      "packages": [
+        "react-best-practices"
+      ],
+      "bundled_in_git": false,
+      "bundled_in_ghcr": false,
+      "redistribution_policy": "FETCH_FROM_UPSTREAM_ONLY",
+      "restriction_reason": "Upstream repository lacks a standalone root LICENSE file (SPDX NOASSERTION); never vendored or distributed in ALLINAGENT artifacts.",
+      "compatibility": "COMPLIANT_VIA_USER_FETCH_ONLY"
+    }
+  ],
+  "known_package_licenses": {
+    "npm": {
+      "@noble/ed25519": "MIT",
+      "@playwright/test": "Apache-2.0",
+      "@react-three/drei": "MIT",
+      "@react-three/fiber": "MIT",
+      "@react-three/postprocessing": "MIT",
+      "@tailwindcss/postcss": "MIT",
+      "@testing-library/jest-dom": "MIT",
+      "@testing-library/react": "MIT",
+      "@types/canvas-confetti": "MIT",
+      "@types/node": "MIT",
+      "@types/react": "MIT",
+      "@types/react-dom": "MIT",
+      "@types/three": "MIT",
+      "@types/ws": "MIT",
+      "canvas-confetti": "ISC",
+      "class-variance-authority": "Apache-2.0",
+      "clsx": "MIT",
+      "eslint": "MIT",
+      "eslint-config-next": "MIT",
+      "eslint-config-prettier": "MIT",
+      "jsdom": "MIT",
+      "lucide-react": "ISC",
+      "next": "MIT",
+      "paperclipai": "MIT",
+      "phaser": "MIT",
+      "react": "MIT",
+      "react-dom": "MIT",
+      "react-markdown": "MIT",
+      "react-mentions-ts": "MIT",
+      "remark-gfm": "MIT",
+      "tailwind-merge": "MIT",
+      "tailwindcss": "MIT",
+      "three": "MIT",
+      "typescript": "Apache-2.0",
+      "vitest": "MIT",
+      "ws": "MIT"
+    },
+    "pypi": {
+      "beautifulsoup4": "MIT",
+      "certifi": "MPL-2.0",
+      "croniter": "MIT",
+      "cryptography": "Apache-2.0 OR BSD-3-Clause",
+      "fire": "Apache-2.0",
+      "httpx": "BSD-3-Clause",
+      "jinja2": "BSD-3-Clause",
+      "jsonschema": "MIT",
+      "lxml": "BSD-3-Clause",
+      "markdown": "BSD-3-Clause",
+      "mcp": "MIT",
+      "openai": "Apache-2.0",
+      "packaging": "Apache-2.0",
+      "prompt-toolkit": "BSD-3-Clause",
+      "pycryptodome": "BSD-2-Clause",
+      "pydantic": "MIT",
+      "pydantic-settings": "MIT",
+      "pyjwt": "MIT",
+      "pypdf": "BSD-3-Clause",
+      "python-docx": "MIT",
+      "python-dotenv": "BSD-3-Clause",
+      "pyyaml": "MIT",
+      "reportlab": "BSD-3-Clause",
+      "requests": "Apache-2.0",
+      "rich": "MIT",
+      "ruamel-yaml": "MIT",
+      "snowballstemmer": "BSD-3-Clause",
+      "toml": "MIT",
+      "tomli-w": "MIT",
+      "truststore": "MIT",
+      "typer": "MIT"
+    }
+  },
+  "summary_counts": {
+    "core_upstreams_total": 4,
+    "core_upstreams_mit": 4,
+    "skill_repos_total": 10,
+    "skill_packages_total": 33,
+    "skill_packages_permissive": 20,
+    "skill_packages_fetch_only": 13,
+    "skill_packages_fetch_only_breakdown": {
+      "borghei_mit_commons_clause_1_0": 10,
+      "vercel_labs_noassertion": 1,
+      "anthropics_ooxml_xsd_bundled": 2
+    },
+    "removed_non_osi_vendor_files": 1,
+    "copyleft_violations": 0,
+    "restricted_files_bundled": 0
+  }
+}

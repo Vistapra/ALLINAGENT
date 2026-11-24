@@ -1,0 +1,202 @@
+{
+  "schema_version": "1.0.0",
+  "name": "allinagent-skill-security-and-governance-policy",
+  "updated_at": "2026-11-24T00:00:00Z",
+  "enforcement": {
+    "locked": true,
+    "pinned": true,
+    "require_40_char_commit_sha": true,
+    "require_sha256_verification": true,
+    "require_security_gate_pass": true,
+    "block_arbitrary_remote_skill_installs": true,
+    "block_unpinned_branches_or_tags": true,
+    "allow_agent_self_skill_mutation": false
+  },
+  "security_gate": {
+    "bootstrap_scanner_pkg": "skill-scanner",
+    "bootstrap_scanner_repo": "getsentry/skills",
+    "bootstrap_scanner_commit_sha": "a582c51ee29d0f35e6ac321340796f77d43da733",
+    "bootstrap_scanner_upstream_sha256": "a51d7dceaa0778b2d17dac89d83fde191260b26ecdad566a85ff51c0441b19db",
+    "run_sentry_scan_skill": true,
+    "run_recursive_ast_scanner": true,
+    "quarantine_on_tamper_or_failure": true,
+    "reject_symlinks_escaping_skill_dir": true,
+    "reject_frontmatter_lifecycle_hooks": true,
+    "reject_npm_install_hooks": true
+  },
+  "classifications": {
+    "experimental": {
+      "packages": [
+        "cve-triage"
+      ],
+      "auto_activate_in_paperclip_runtime": false,
+      "enable_cli_flag": "--enable-experimental",
+      "isolation_subdir": "experimental"
+    },
+    "reference_only": {
+      "packages": [
+        "threat-model",
+        "secondsky-cybersecurity-ref",
+        "anthropic-triage",
+        "anthropic-patch"
+      ],
+      "auto_activate_in_paperclip_runtime": false,
+      "materialization_mode": "agent_references_dir_only",
+      "isolation_subdir": "references"
+    },
+    "fetch_from_upstream_only": {
+      "packages": [
+        "api-design-reviewer",
+        "ci-cd-pipeline-builder",
+        "cto-advisor",
+        "docx",
+        "focused-fix",
+        "pdf",
+        "react-best-practices",
+        "security-audit",
+        "senior-architect",
+        "senior-backend",
+        "senior-devops",
+        "senior-qa",
+        "senior-security"
+      ],
+      "bundle_in_git_or_ghcr": false,
+      "install_phase": "./allinagent setup"
+    }
+  },
+  "strict_oss_fallbacks": {
+    "docx": {
+      "bundled_hermes_skill": "productivity/microsoft-office",
+      "license_spdx": "MIT",
+      "provider": "Nous Research (Hermes Bundled Skill)",
+      "modes": [
+        "--strict-oss",
+        "--offline"
+      ],
+      "description": "Permissive MIT fallback for Word/Office document workflows when upstream fetch is disabled or --strict-oss is enforced."
+    },
+    "pdf": {
+      "bundled_hermes_skill": "productivity/pdf",
+      "license_spdx": "MIT",
+      "provider": "Nous Research (Hermes Bundled Skill)",
+      "modes": [
+        "--strict-oss",
+        "--offline"
+      ],
+      "keep_bundled_skill_enabled": true,
+      "description": "Permissive MIT fallback for PDF generation/inspection when upstream fetch is disabled or --strict-oss is enforced."
+    }
+  },
+  "quarantined_excluded_files": [
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-agent-safety.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-ai-security.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-code-audit.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-compliance.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-web-vuln-testing.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-business-logic.md",
+      "reason": "Contains offensive web vulnerability test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-forced-browsing.md",
+      "reason": "Contains offensive web vulnerability test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-host-header.md",
+      "reason": "Contains offensive web vulnerability test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-open-redirect.md",
+      "reason": "Contains offensive web vulnerability test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-xss.md",
+      "reason": "Contains offensive XSS test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "threat-model",
+      "file": "bootstrap.md",
+      "reason": "Deprecated autonomous harness bootstrap excluded per defensive REFERENCE_ONLY policy; threat modeling methodology retained."
+    }
+  ],
+  "stage2_normalizations": {
+    "quote_iso_dates": true,
+    "name_rewrites": {
+      "react-best-practices": {
+        "from": "vercel-react-best-practices",
+        "to": "react-best-practices"
+      },
+      "pw-generate": {
+        "from": "generate",
+        "to": "pw-generate"
+      },
+      "pw-fix": {
+        "from": "fix",
+        "to": "pw-fix"
+      },
+      "pw-coverage": {
+        "from": "coverage",
+        "to": "pw-coverage"
+      },
+      "pw-report": {
+        "from": "report",
+        "to": "pw-report"
+      }
+    },
+    "strip_frontmatter_keys": {
+      "c-level-skills": [
+        "disable-model-invocation"
+      ]
+    },
+    "apache_2_0_section_4b_comment": "# Apache-2.0 Section 4(b) Notice: YAML frontmatter normalized by ALLINAGENT Skill Registry Stage-2 Normalizer for Hermes/Paperclip runtime compatibility.",
+    "local_adaptation_files": [
+      "c-level-skills/references/paperclip-11-agent-routing.md",
+      "LARAVEL-COMPATIBILITY.md"
+    ],
+    "conflict_resolution": {
+      "compliance_reporter": {
+        "when_installed": "pdf",
+        "disable_and_archive_bundled": [
+          "productivity/pdf"
+        ]
+      }
+    }
+  },
+  "allowed_repositories": {
+    "alirezarezvani/claude-skills": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+    "anthropics/defending-code-reference-harness": "d3bea6b5793b5f3d59a75ebe69a58efa88383145",
+    "anthropics/skills": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+    "antonbabenko/terraform-skill": "f5a195992d84c8fb075b0176d666967cd07d2081",
+    "borghei/Claude-Skills": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+    "fedius01/cve-triage": "3517c8fb10531103c403f09143966d62b2a0790f",
+    "getsentry/skills": "a582c51ee29d0f35e6ac321340796f77d43da733",
+    "secondsky/claude-skills": "14966c3024f48eea0386eb970b230ea0f4bebd33",
+    "stacklok/toolhive-studio": "4d87c91d49b881ccc7dc64667c1dce5a84c535d6",
+    "vercel-labs/agent-skills": "5a37a6329fbad3666c3207392a6a7c0110e92efb"
+  }
+}

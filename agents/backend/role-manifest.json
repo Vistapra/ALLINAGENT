@@ -1,0 +1,46 @@
+{
+  "index": 3,
+  "agent_dir": "backend",
+  "role_slug": "backend_developer",
+  "profile_id": "pcbackenddeveloper",
+  "name": "Backend Developer",
+  "handle": "@backend",
+  "role": "engineer",
+  "title": "Senior Full-Stack / Backend Software Engineer",
+  "department": "Engineering",
+  "reports_to_slug": "ceo_agent",
+  "wave": 1,
+  "default_activation": "ACTIVE",
+  "budget_monthly_cents": 3000,
+  "timeout_sec": 300,
+  "max_turns": 25,
+  "toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "toolsets_csv": "file,terminal,skills",
+  "hermes_home": "/data/hermes/profiles/pcbackenddeveloper",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/backend/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/backend/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+  "skills": {
+    "primary": [
+      "senior-backend"
+    ],
+    "specialist": [
+      "api-design-reviewer"
+    ],
+    "on_demand": [
+      "senior-architect"
+    ],
+    "reference_only": [],
+    "experimental": [],
+    "disabled_bundled": []
+  }
+}

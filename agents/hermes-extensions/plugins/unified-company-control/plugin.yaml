@@ -1,0 +1,8 @@
+name: unified-company-control
+version: 2.0.0
+description: "Portable Owner-only Telegram Control Center & 11-agent interactive orchestrator for ALLINAGENT (59 slash commands, 13 submenus, uac:* callbacks, Bahasa Indonesia NL router, PNG/PDF/DOCX delivery)."
+author: "ALLINAGENT Platform Engineering"
+provides_tools:
+  - unified_company_control
+provides_hooks:
+  - post_gateway_admission

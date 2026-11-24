@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "package": "paperclipai",
+  "version": "2026.1117.0",
+  "applicator": "components/paperclip/apply-paperclip-patches.mjs",
+  "patches": [
+    {
+      "patchFile": "0001-hermes-adapter-query-file-cleanup.patch",
+      "targetPackageVersion": "2026.1117.0",
+      "targetPath": "node_modules/@paperclipai/hermes-paperclip-adapter/dist/server/execute.js",
+      "description": "Use --query-file (0o600) for prompts > 6000 chars or win32 and guarantee fs.rm cleanup in finally {}",
+      "upstreamSha256": "7d97c729f6a0b620ce31d7e9cbedc4ba3543bcbdb9dd8797db01173e5d6bcd0d",
+      "patchedSha256": "af0733237e66f6d04b010dd629da2d8034c87de38ef9b4f0198148f5e80dbb6a",
+      "patchSha256": "e4362b70d648e535432244bc9d80821299d196df61a8350e75ed48606f71a19e"
+    },
+    {
+      "patchFile": "0002-hermes-adapter-skills-reconcile.patch",
+      "targetPackageVersion": "2026.1117.0",
+      "targetPath": "node_modules/@paperclipai/hermes-paperclip-adapter/dist/server/skills.js",
+      "description": "Preserve skill-registry & -- namespaced skill links, follow symlinked skill dirs, and fallback to copy on EPERM/ENOSYS",
+      "upstreamSha256": "e3aa276f8ef9177bdc7eba0658958ac55c229ca828b2fa8366dd0a54b0fe6022",
+      "patchedSha256": "f07e4977cea6e56aba726c59134e11cabd26f3bf0ed46e85605298007194a1fb",
+      "patchSha256": "346e73c886ab729b08435ba6846987b789df6db03ab60b95750519c42a0da853"
+    },
+    {
+      "patchFile": "0003-hermes-gateway-internal-hosts.patch",
+      "targetPackageVersion": "2026.1117.0",
+      "targetPath": "node_modules/@paperclipai/hermes-paperclip-adapter/dist/gateway/server/transport-security.js",
+      "description": "Allow trusted internal Docker hostnames from HERMES_GATEWAY_INTERNAL_HOSTS over bridge HTTP",
+      "upstreamSha256": "11cb418a322af63f2ae4d98e771fabe6e69d790e52958664063b212a1ad7dbff",
+      "patchedSha256": "2d76673df589aefa19f8390c5dd80a779eee0d3d3683fcb7bd24427826247dcf",
+      "patchSha256": "6124882d38970cab942a9093f063d0f37dbd51722b669635b809ac40d806a768"
+    },
+    {
+      "patchFile": "0004-db-low-memory-connection-pool.patch",
+      "targetPackageVersion": "2026.1117.0",
+      "targetPath": "node_modules/@paperclipai/db/dist/client.js",
+      "description": "Cap DEFAULT_MAIN_POOL_CONNECTIONS (default 5) and trim private/dedicated pools when PAPERCLIP_LOW_MEMORY=1 (<= 12-15 conns)",
+      "upstreamSha256": "2d3ff2c6f500c42178707b02385e8994faef9ef74d6c8974d270e2574acba839",
+      "patchedSha256": "04a474937da6d67e96a59eae66184d8b8e33d5d3bdb6d593362bf4c0e3a83b55",
+      "patchSha256": "406c9cee5b2b9bba35263aede6f5a90bf0984c937d495cdb7dd190ff940e8e43"
+    }
+  ]
+}

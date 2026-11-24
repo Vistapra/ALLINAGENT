@@ -1,0 +1,120 @@
+# ==============================================================================
+# ALLINAGENT — Lightweight Autonomous AI Platform (.gitignore)
+# ==============================================================================
+
+# 1. Node.js, Python & Build Tool Dependencies / Virtual Environments
+node_modules/
+**/node_modules/
+.pnpm-store/
+.pnp
+.pnp.js
+.venv/
+**/.venv/
+*venv*/
+**/*venv*/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+/runtime/
+/vendor-cache/
+.upstream-cache/
+
+# 2. Build Outputs & Incremental Caches
+.next/
+**/.next/
+.turbo/
+**/.turbo/
+dist/
+**/dist/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# 3. Environment Files, Credentials, Tokens & Private Configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+config/secrets/
+**/secrets/
+config/organization-roster.json
+*.local
+*.local.*
+auth.json
+**/auth.json
+office-bridge-auth.json
+**/office-bridge-auth.json
+*secret*.json
+*token*.json
+*credentials*.json
+*.pem
+*.key
+*.pfx
+*.p12
+**/.certs/
+.certs/
+
+# 4. Runtime Data, State, Logs, Reports & Fetched Skill Registries
+data/
+office-data/
+logs/
+*.log
+reports/
+sbom.cdx.json
+skill-registry/
+skills/upstream/
+skills/staging/
+skills/reviewed/
+skills/quarantine/
+skills/agents/
+skills/cache/
+/workers/
+*-worktrees/
+**/*-worktrees/
+*.pid
+*.pid.lock
+install-stamp.json
+
+# 5. Connected Workspaces (Keep ONLY README.md & sample-project fixture)
+workspaces/*
+!workspaces/README.md
+!workspaces/sample-project/
+!workspaces/sample-project/**
+
+# 6. Databases, WAL Journals & Backups / Dumps
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sql
+!tests/fixtures/**/*.sql
+*.sql.gz
+*.dump
+
+# 7. Platform-Specific Native Binaries & Unvendored Monolithic Upstreams
+*.exe
+*.dll
+*.pdb
+*.pyd
+/hermes-agent/
+/paperclip/
+/vulnclaw/
+
+# 8. OS & Editor Artifacts
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+*~

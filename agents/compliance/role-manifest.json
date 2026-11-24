@@ -1,0 +1,47 @@
+{
+  "index": 11,
+  "agent_dir": "compliance",
+  "role_slug": "compliance_reporter",
+  "profile_id": "pccompliancereporter",
+  "name": "Report & Compliance Agent",
+  "handle": "@compliance",
+  "role": "pm",
+  "title": "Audit Evidence & Acceptance Compliance Specialist",
+  "department": "Audit & Governance",
+  "reports_to_slug": "ceo_agent",
+  "wave": 2,
+  "default_activation": "STANDBY",
+  "budget_monthly_cents": 1000,
+  "timeout_sec": 180,
+  "max_turns": 12,
+  "toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "toolsets_csv": "file,terminal,skills",
+  "hermes_home": "/data/hermes/profiles/pccompliancereporter",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/compliance/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/compliance/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_REPORTS_ROOT:-/data/reports}",
+  "skills": {
+    "primary": [
+      "compliance-os"
+    ],
+    "specialist": [
+      "docx",
+      "pdf"
+    ],
+    "on_demand": [],
+    "reference_only": [],
+    "experimental": [],
+    "disabled_bundled": [
+      "productivity/pdf"
+    ]
+  }
+}

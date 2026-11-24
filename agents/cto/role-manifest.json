@@ -1,0 +1,46 @@
+{
+  "index": 2,
+  "agent_dir": "cto",
+  "role_slug": "cto_agent",
+  "profile_id": "pcctoagent",
+  "name": "CTO Agent",
+  "handle": "@cto",
+  "role": "cto",
+  "title": "Chief Technology Officer \u2014 Architecture & Standards",
+  "department": "Architecture",
+  "reports_to_slug": "ceo_agent",
+  "wave": 2,
+  "default_activation": "STANDBY",
+  "budget_monthly_cents": 1500,
+  "timeout_sec": 240,
+  "max_turns": 18,
+  "toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "toolsets_csv": "file,terminal,skills",
+  "hermes_home": "/data/hermes/profiles/pcctoagent",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/cto/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/cto/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+  "skills": {
+    "primary": [
+      "cto-review"
+    ],
+    "specialist": [
+      "senior-architect"
+    ],
+    "on_demand": [
+      "cto-advisor"
+    ],
+    "reference_only": [],
+    "experimental": [],
+    "disabled_bundled": []
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0.0",
+  "product": "ALLINAGENT",
+  "product_version": "1.0.0",
+  "updated_at": "2026-11-24T11:20:00Z",
+  "policy": {
+    "allow_floating_git_refs": false,
+    "require_40_char_commit_sha": true,
+    "vendor_monolithic_upstreams_in_git": false,
+    "bundle_noncommercial_or_unlicensed_skills": false,
+    "bundle_non_osi_vendor_scripts": false
+  },
+  "components": {
+    "hermes-agent": {
+      "name": "hermes-agent",
+      "display_name": "Hermes Agent",
+      "upstream_repo": "https://github.com/NousResearch/hermes-agent.git",
+      "homepage": "https://github.com/NousResearch/hermes-agent",
+      "version": "0.23.3",
+      "tag": "v0.23.3",
+      "commit": "eb49b8920a25ffa7bb2fadf548fe819221ca79d7",
+      "purl": "pkg:github/NousResearch/hermes-agent@eb49b8920a25ffa7bb2fadf548fe819221ca79d7",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2025 Nous Research",
+      "acquisition_mode": "shallow_git_checkout_and_patch",
+      "vendored_in_repo": false,
+      "component_dir": "components/hermes",
+      "dockerfile": "deploy/docker/hermes.Dockerfile",
+      "strip_non_runtime_paths": [
+        "apps/desktop",
+        "website",
+        "tests",
+        "evals",
+        "nix"
+      ],
+      "patches": [
+        "patches/hermes-agent/0001-error-classifier-integrator.patch"
+      ]
+    },
+    "paperclip": {
+      "name": "paperclip",
+      "display_name": "Paperclip AI",
+      "upstream_repo": "https://github.com/paperclipai/paperclip.git",
+      "homepage": "https://github.com/paperclipai/paperclip",
+      "npm_package": "paperclipai",
+      "npm_spec": "paperclipai@2026.1117.0",
+      "version": "2026.1117.0",
+      "commit": "c0f132898d2a2677312d8c72096187b27a3d9a38",
+      "purl": "pkg:npm/paperclipai@2026.1117.0",
+      "source_purl": "pkg:github/paperclipai/paperclip@c0f132898d2a2677312d8c72096187b27a3d9a38",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2025 Paperclip AI",
+      "acquisition_mode": "npm_install_locked_and_patch",
+      "vendored_in_repo": false,
+      "component_dir": "components/paperclip",
+      "dockerfile": "deploy/docker/paperclip.Dockerfile",
+      "install_flags": [
+        "--omit=optional",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "patch_manifest": "patches/paperclip/patch-manifest.json",
+      "patches": [
+        "patches/paperclip/0001-hermes-adapter-query-file-cleanup.patch",
+        "patches/paperclip/0002-hermes-adapter-skills-reconcile.patch",
+        "patches/paperclip/0003-hermes-gateway-internal-hosts.patch",
+        "patches/paperclip/0004-db-low-memory-connection-pool.patch"
+      ]
+    },
+    "vulnclaw": {
+      "name": "vulnclaw",
+      "display_name": "VulnClaw (Defensive-Only Static Analysis Runtime)",
+      "upstream_repo": "https://github.com/Netw0rkNoob/VulnClaw.git",
+      "homepage": "https://github.com/Netw0rkNoob/VulnClaw",
+      "version": "0.4.1",
+      "tag": "v0.4.1",
+      "commit": "0b34878f84b089b21fcf85ecd445315f14df0672",
+      "purl": "pkg:github/Netw0rkNoob/VulnClaw@0b34878f84b089b21fcf85ecd445315f14df0672",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 UncleC",
+      "acquisition_mode": "on_demand_isolated_checkout",
+      "vendored_in_repo": false,
+      "component_dir": "components/vulnclaw",
+      "dockerfile": "deploy/docker/vulnclaw.Dockerfile",
+      "defensive_config": "config/vulnclaw.defensive.yaml",
+      "patches": []
+    },
+    "hermes3d": {
+      "name": "hermes3d",
+      "display_name": "Hermes3D (3D & 2D Virtual Office Frontend)",
+      "upstream_repo": "https://github.com/iamlukethedev/Hermes3D.git",
+      "homepage": "https://github.com/iamlukethedev/Hermes3D",
+      "version": "1.0.0",
+      "tag": "v1.0.0",
+      "base_commit": "beb76292747b816ef317aa6f9a3992e0014f81d9",
+      "commit": "beb76292747b816ef317aa6f9a3992e0014f81d9",
+      "purl": "pkg:github/iamlukethedev/Hermes3D@beb76292747b816ef317aa6f9a3992e0014f81d9",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Luke The Dev",
+      "acquisition_mode": "tracked_extended_subtree",
+      "vendored_in_repo": true,
+      "subtree_path": "apps/hermes3d",
+      "dockerfile": "deploy/docker/office.Dockerfile",
+      "excluded_non_osi_files": [
+        "src/lib/avatars/vendor/multiavatar.js"
+      ],
+      "patches": []
+    }
+  },
+  "skill_manifest_locations": [
+    "skills/manifests/skills.lock.json",
+    "skills/manifests/skill-security-results.json",
+    "skills/policies/skill-policy.json"
+  ]
+}

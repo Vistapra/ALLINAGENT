@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "allinagent-control-center"
+version = "1.0.0"
+description = "Cross-platform Python Control Center, Skill Registry Security Gate & Report Exporter for ALLINAGENT."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+reports = [
+  "reportlab>=4.0",
+  "python-docx>=1.1",
+  "pypdf>=4.0",
+]
+
+[project.scripts]
+allinagent-cli = "control_center.platform_cli:main"
+ai-platform = "control_center.platform_cli:main"
+allinagent-provision-org = "control_center.org_provisioner:main"
+allinagent-skills = "control_center.agent_skills_manager:main"
+allinagent-export-report = "control_center.report_exporter:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["control_center*", "integration*"]

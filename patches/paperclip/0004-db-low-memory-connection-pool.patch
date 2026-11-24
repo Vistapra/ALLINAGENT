@@ -1,0 +1,203 @@
+diff --git a/@paperclipai/db/dist/client.js b/@paperclipai/db/dist/client.js
+index c9a3afa..00c4758 100644
+--- a/@paperclipai/db/dist/client.js
++++ b/@paperclipai/db/dist/client.js
+@@ -1,5 +1,6 @@
+ import { createHash } from "node:crypto";
++import { AsyncLocalStorage } from "node:async_hooks";
+ import { drizzle as drizzlePg } from "drizzle-orm/postgres-js";
+ import { readFile, readdir } from "node:fs/promises";
+ import { fileURLToPath } from "node:url";
+ import postgres from "postgres";
+@@ -117,9 +118,26 @@ function splitMigrationStatements(content) {
+  * idle connection open forever, so a process that stops issuing queries still
+  * holds every backend it ever opened. Set `DATABASE_IDLE_TIMEOUT_SECONDS=0`
+  * to restore the driver default.
+  */
+-export const DEFAULT_DATABASE_IDLE_TIMEOUT_SECONDS = 60;
++// ALLINAGENT_PATCH_DB_LOW_MEMORY_POOL_V1
++function isPaperclipLowMemory(env = process.env) {
++    const raw = env.PAPERCLIP_LOW_MEMORY?.trim().toLowerCase();
++    return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
++}
++function resolveDefaultMainPoolConnections(env = process.env) {
++    const parsed = Number(env.PAPERCLIP_DB_POOL_MAX || 5);
++    return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 5;
++}
++function resolveDefaultDedicatedPoolConnections(env = process.env) {
++    const explicit = Number(env.PAPERCLIP_DEDICATED_POOL_MAX || 0);
++    if (Number.isFinite(explicit) && explicit >= 1)
++        return Math.floor(explicit);
++    return isPaperclipLowMemory(env) ? 2 : 6;
++}
++export const DEFAULT_MAIN_POOL_CONNECTIONS = resolveDefaultMainPoolConnections();
++export const LOW_MEMORY_IDLE_TIMEOUT_SECONDS = 20;
++export const DEFAULT_DATABASE_IDLE_TIMEOUT_SECONDS = isPaperclipLowMemory() ? LOW_MEMORY_IDLE_TIMEOUT_SECONDS : 60;
+ /** `application_name` reported to PostgreSQL unless `DATABASE_APPLICATION_NAME` overrides it. */
+ export const DEFAULT_DATABASE_APPLICATION_NAME = "paperclip";
+ function envBoolean(env, name) {
+     const value = env[name]?.trim().toLowerCase();
+@@ -167,9 +185,9 @@ export function databaseClientOptionsFromEnv(env = process.env) {
+     const options = {};
+     const prepare = envBoolean(env, "DATABASE_PREPARED_STATEMENTS");
+     if (prepare !== undefined)
+         options.prepare = prepare;
+-    const maxConnections = envPositiveInteger(env, "DATABASE_POOL_MAX");
++    const maxConnections = envPositiveInteger(env, "DATABASE_POOL_MAX") ?? envPositiveInteger(env, "PAPERCLIP_DB_POOL_MAX");
+     if (maxConnections !== undefined)
+         options.maxConnections = maxConnections;
+     // `0` is allowed here: it disables idle reaping (the driver default).
+     const idleTimeoutSeconds = envNonNegativeInteger(env, "DATABASE_IDLE_TIMEOUT_SECONDS");
+@@ -193,11 +211,14 @@ export function databaseClientOptionsFromEnv(env = process.env) {
+  * else stays at the driver default. An explicit value (including
+  * `idleTimeoutSeconds: 0`) always wins over the default.
+  */
+ export function resolveDatabaseClientOptions(options) {
++    const mainPoolDefault = resolveDefaultMainPoolConnections();
++    const idleDefault = isPaperclipLowMemory() ? LOW_MEMORY_IDLE_TIMEOUT_SECONDS : 60;
+     return {
+         ...options,
+-        idleTimeoutSeconds: options.idleTimeoutSeconds ?? DEFAULT_DATABASE_IDLE_TIMEOUT_SECONDS,
++        maxConnections: options.maxConnections ?? mainPoolDefault,
++        idleTimeoutSeconds: options.idleTimeoutSeconds ?? idleDefault,
+         applicationName: options.applicationName ?? DEFAULT_DATABASE_APPLICATION_NAME,
+     };
+ }
+ export function postgresJsOptions(options) {
+@@ -231,27 +252,83 @@ export function createOwnedDatabaseListener(db) {
+         listen: owned.$client.listen.bind(owned.$client),
+         close: () => owned.$client.end({ timeout: 1 }),
+     };
+ }
++const dedicatedSemaphores = new WeakMap();
++const activeDedicatedOwners = new AsyncLocalStorage();
++export const DEFAULT_DEDICATED_CONNECTION_MAX = resolveDefaultDedicatedPoolConnections();
++function getDedicatedSemaphore(db) {
++    let sem = dedicatedSemaphores.get(db);
++    if (!sem) {
++        sem = { limit: resolveDefaultDedicatedPoolConnections(), inUse: 0, waiters: [] };
++        dedicatedSemaphores.set(db, sem);
++    }
++    return sem;
++}
++async function acquireDedicatedSlot(sem, bypassWait) {
++    if (bypassWait || (sem.inUse < sem.limit && sem.waiters.length === 0)) {
++        sem.inUse += 1;
++        return;
++    }
++    await new Promise((resolve) => {
++        const waiter = {
++            grant: () => {
++                clearTimeout(waiter.timer);
++                sem.inUse += 1;
++                resolve();
++            },
++            timer: setTimeout(() => {
++                const idx = sem.waiters.indexOf(waiter);
++                if (idx >= 0)
++                    sem.waiters.splice(idx, 1);
++                sem.inUse += 1;
++                resolve();
++            }, 30000),
++        };
++        waiter.timer.unref?.();
++        sem.waiters.push(waiter);
++    });
++}
++function releaseDedicatedSlot(sem) {
++    sem.inUse = Math.max(0, sem.inUse - 1);
++    while (sem.waiters.length > 0 && sem.inUse < sem.limit) {
++        const next = sem.waiters.shift();
++        next?.grant();
++    }
++}
+ export async function withDedicatedDbConnection(db, action) {
+     const factory = dedicatedDbFactories.get(db);
+     if (!factory)
+         throw new Error("dedicated_connection_requires_create_db");
+-    const dedicated = factory();
++    const sem = getDedicatedSemaphore(db);
++    const heldSet = activeDedicatedOwners.getStore();
++    const isNested = Boolean(heldSet?.has(db));
++    await acquireDedicatedSlot(sem, isNested);
++    let dedicated;
+     try {
+-        return await action(dedicated);
++        dedicated = factory();
++        const nextHeld = new Set(heldSet ?? []);
++        nextHeld.add(db);
++        return await activeDedicatedOwners.run(nextHeld, () => action(dedicated));
+     }
+     finally {
+-        await dedicated.$client.end({ timeout: 1 });
++        try {
++            if (dedicated) {
++                await dedicated.$client.end({ timeout: 1 }).catch(() => {});
++            }
++        }
++        finally {
++            releaseDedicatedSlot(sem);
++        }
+     }
+ }
+ // postgres.js pipelines a query onto a busy connection when none is idle, so
+ // a short liveness write can wait behind an unrelated slow statement with no
+ // client-side bound. Liveness writes (controller-lease renewal) get a small
+ // private pool, created on first use and shared for the owner's lifetime.
+ const livenessDbFactories = new WeakMap();
+ const livenessDbs = new WeakMap();
+-const LIVENESS_POOL_MAX_CONNECTIONS = 2;
++const LIVENESS_POOL_MAX_CONNECTIONS = isPaperclipLowMemory() ? 1 : 2;
+ /** The private liveness pool for a `createDb` client; other clients (test
+  * doubles, transactions) are returned unchanged. */
+ export function livenessDb(db) {
+     const existing = livenessDbs.get(db);
+@@ -272,9 +349,28 @@ export async function closeLivenessDb(db, timeoutSeconds) {
+ // Control checkpoints must not occupy the request or lease-renewal pools
+ // during an aligned burst. Share at most three lazy connections per owner.
+ const checkpointDbFactories = new WeakMap();
+ const checkpointDbs = new WeakMap();
+-const CHECKPOINT_POOL_MAX_CONNECTIONS = 3;
++const CHECKPOINT_POOL_MAX_CONNECTIONS = isPaperclipLowMemory() ? 1 : 3;
++const FILE_STORAGE_POOL_MAX_CONNECTIONS = isPaperclipLowMemory() ? 1 : 2;
++export function databaseConnectionBudget(options = {}, env = process.env) {
++    const lowMem = isPaperclipLowMemory(env);
++    const main = options.maxConnections ?? resolveDefaultMainPoolConnections(env);
++    const liveness = lowMem ? 1 : 2;
++    const checkpoint = lowMem ? 1 : 3;
++    const fileStorage = lowMem ? 1 : 2;
++    const privatePools = liveness + checkpoint + fileStorage;
++    const listeners = 2;
++    const dedicated = resolveDefaultDedicatedPoolConnections(env);
++    return {
++        lowMemory: lowMem,
++        main,
++        privatePools,
++        listeners,
++        dedicated,
++        total: main + privatePools + listeners + dedicated,
++    };
++}
+ const closedCheckpointOwners = new WeakSet();
+ /** The bounded controller checkpoint pool; transactions and test doubles keep
+  * their existing database when they have no owning client factory. */
+ export function checkpointDb(db) {
+@@ -341,15 +437,15 @@ function createDbClient(url, resolved, owner) {
+     ownedDatabaseListenerFactories.set(db, () => createDbClient(url, {
+         ...resolved, maxConnections: 1,
+     }, db));
+     livenessDbFactories.set(db, () => createDbClient(url, {
+-        ...resolved, maxConnections: LIVENESS_POOL_MAX_CONNECTIONS, applicationName: "paperclip-controller-lease",
++        ...resolved, maxConnections: isPaperclipLowMemory() ? 1 : LIVENESS_POOL_MAX_CONNECTIONS, applicationName: "paperclip-controller-lease",
+     }, db));
+     checkpointDbFactories.set(db, () => createDbClient(url, {
+-        ...resolved, maxConnections: CHECKPOINT_POOL_MAX_CONNECTIONS, applicationName: "paperclip-runner-checkpoint",
++        ...resolved, maxConnections: isPaperclipLowMemory() ? 1 : CHECKPOINT_POOL_MAX_CONNECTIONS, applicationName: "paperclip-runner-checkpoint",
+     }, db));
+     fileStorageDbFactories.set(db, () => createDbClient(url, {
+-        ...resolved, maxConnections: 2, applicationName: "paperclip-file-storage",
++        ...resolved, maxConnections: isPaperclipLowMemory() ? 1 : FILE_STORAGE_POOL_MAX_CONNECTIONS, applicationName: "paperclip-file-storage",
+     }, db));
+     return db;
+ }
+ export async function getPostgresDataDirectory(url) {

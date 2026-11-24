@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "order-billing-demo"
+version = "1.0.0"
+description = "Synthetic MIT-licensed order & billing microservice fixture for ALLINAGENT workspace verification."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "ALLINAGENT Contributors" }
+]
+dependencies = []
+
+[tool.unittest]
+start-directory = "tests"
+pattern = "test_*.py"

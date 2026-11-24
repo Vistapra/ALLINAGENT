@@ -1,0 +1,506 @@
+{
+  "phase_id": "PHASE-01",
+  "title": "Sanitized Directory Size, Category & SHA-256 Duplicate Summary",
+  "status": "PASS",
+  "sanitization_status": "PUBLIC_RELEASE_SANITIZED_ZERO_HOST_PATHS",
+  "started_at_utc": "2026-11-24T07:52:47.251479+00:00",
+  "completed_at_utc": "2026-11-24T08:11:27.689260+00:00",
+  "duration_seconds": 1120.44,
+  "baseline_host": "<WINDOWS_BASELINE_HOST>",
+  "python_version": "3.14.9 (main, Oct 21 2026, 17:48:58) [MSC v.1944 64 bit (AMD64)]",
+  "unit_convention": "1 KB = 1,024 B; 1 MB = 1,048,576 B (MiB); 1 GB = 1,073,741,824 B (GiB)",
+  "compliance_verification": {
+    "secret_files_stat_only_count": 2623,
+    "secret_files_stat_only_bytes": 24536589,
+    "secret_files_opened_or_read_count": 0,
+    "symlinks_and_reparse_points_detected": 2017,
+    "symlinks_and_reparse_points_recursed": 0,
+    "existing_files_modified_or_deleted": 0,
+    "stat_errors_count": 0,
+    "hash_errors_count": 0
+  },
+  "grand_totals": {
+    "audited_roots_count": 5,
+    "total_directories_traversed": 43087,
+    "total_files": 461174,
+    "total_bytes": 11126312521,
+    "total_human_size": "11,126,312,521 B (10,610.88 MB / 10.36 GB)",
+    "mandatory_source_code_bytes_upper_bound": 564479837,
+    "mandatory_source_code_human": "564,479,837 B (538.33 MB / 0.53 GB)",
+    "non_git_bloat_and_runtime_artifacts_bytes": 10561832684,
+    "non_git_reduction_potential_pct": 94.93,
+    "persistent_operational_data_bytes": 214806958
+  },
+  "roots_summary": [
+    {
+      "root_id": "LEGACY_PLATFORM_ROOT",
+      "sanitized_root_path": "<LEGACY_PLATFORM_ROOT>",
+      "file_count": 150043,
+      "bytes": 4261741017,
+      "human_size": "4,261,741,017 B (4,064.31 MB / 3.97 GB)",
+      "pct_of_grand_total": 38.3033,
+      "dominant_category": "9. Platform-specific binaries",
+      "categories_exclusive_files": {
+        "1. Mandatory source code": 16852,
+        "2. Runtime dependency": 112291,
+        "3. Build-only dependency": 5644,
+        "4. Regenerable files": 682,
+        "5. Persistent operational data": 5373,
+        "6. Private user data": 1186,
+        "7. Cache": 1215,
+        "8. Duplicate files": 825,
+        "9. Platform-specific binaries": 1840,
+        "10. Unused/test/temp artifacts": 4135
+      },
+      "categories_exclusive_bytes": {
+        "1. Mandatory source code": 244366404,
+        "2. Runtime dependency": 1335549101,
+        "3. Build-only dependency": 170817172,
+        "4. Regenerable files": 40227780,
+        "5. Persistent operational data": 143575688,
+        "6. Private user data": 12980575,
+        "7. Cache": 13875297,
+        "8. Duplicate files": 121391475,
+        "9. Platform-specific binaries": 2105741772,
+        "10. Unused/test/temp artifacts": 73215753
+      },
+      "categories_intrinsic_bytes": {
+        "1. Mandatory source code": 245487983,
+        "2. Runtime dependency": 1412930518,
+        "3. Build-only dependency": 175466203,
+        "4. Regenerable files": 40328742,
+        "5. Persistent operational data": 157119986,
+        "6. Private user data": 13017276,
+        "7. Cache": 13875297,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 2128951836,
+        "10. Unused/test/temp artifacts": 74563176
+      }
+    },
+    {
+      "root_id": "LEGACY_MONOREPO_ROOT",
+      "sanitized_root_path": "<LEGACY_MONOREPO_ROOT>",
+      "file_count": 93957,
+      "bytes": 1088085076,
+      "human_size": "1,088,085,076 B (1,037.68 MB / 1.01 GB)",
+      "pct_of_grand_total": 9.7794,
+      "dominant_category": "3. Build-only dependency",
+      "categories_exclusive_files": {
+        "1. Mandatory source code": 31430,
+        "2. Runtime dependency": 27,
+        "3. Build-only dependency": 47846,
+        "4. Regenerable files": 27,
+        "5. Persistent operational data": 1,
+        "6. Private user data": 613,
+        "7. Cache": 31,
+        "8. Duplicate files": 1455,
+        "9. Platform-specific binaries": 0,
+        "10. Unused/test/temp artifacts": 12527
+      },
+      "categories_exclusive_bytes": {
+        "1. Mandatory source code": 282922431,
+        "2. Runtime dependency": 507214,
+        "3. Build-only dependency": 543799175,
+        "4. Regenerable files": 475636,
+        "5. Persistent operational data": 363,
+        "6. Private user data": 5375536,
+        "7. Cache": 709242,
+        "8. Duplicate files": 147814850,
+        "9. Platform-specific binaries": 0,
+        "10. Unused/test/temp artifacts": 106480629
+      },
+      "categories_intrinsic_bytes": {
+        "1. Mandatory source code": 418112814,
+        "2. Runtime dependency": 507214,
+        "3. Build-only dependency": 543799175,
+        "4. Regenerable files": 475636,
+        "5. Persistent operational data": 363,
+        "6. Private user data": 5375536,
+        "7. Cache": 709242,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 0,
+        "10. Unused/test/temp artifacts": 119105096
+      }
+    },
+    {
+      "root_id": "Local-Hermes",
+      "sanitized_root_path": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes",
+      "file_count": 141039,
+      "bytes": 4064639495,
+      "human_size": "4,064,639,495 B (3,876.34 MB / 3.79 GB)",
+      "pct_of_grand_total": 36.5318,
+      "dominant_category": "9. Platform-specific binaries",
+      "categories_exclusive_files": {
+        "1. Mandatory source code": 4338,
+        "2. Runtime dependency": 65277,
+        "3. Build-only dependency": 540,
+        "4. Regenerable files": 15,
+        "5. Persistent operational data": 289,
+        "6. Private user data": 509,
+        "7. Cache": 43427,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 26279,
+        "10. Unused/test/temp artifacts": 365
+      },
+      "categories_exclusive_bytes": {
+        "1. Mandatory source code": 37042135,
+        "2. Runtime dependency": 543450344,
+        "3. Build-only dependency": 85456755,
+        "4. Regenerable files": 162540,
+        "5. Persistent operational data": 71222328,
+        "6. Private user data": 3863602,
+        "7. Cache": 720729702,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 2526857015,
+        "10. Unused/test/temp artifacts": 75855074
+      },
+      "categories_intrinsic_bytes": {
+        "1. Mandatory source code": 37042135,
+        "2. Runtime dependency": 543450344,
+        "3. Build-only dependency": 85456755,
+        "4. Regenerable files": 162540,
+        "5. Persistent operational data": 71222328,
+        "6. Private user data": 3863602,
+        "7. Cache": 720729702,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 2526857015,
+        "10. Unused/test/temp artifacts": 75855074
+      }
+    },
+    {
+      "root_id": "NPM-Hermes-Agent",
+      "sanitized_root_path": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/npm/node_modules/hermes-agent",
+      "file_count": 76069,
+      "bytes": 1711232270,
+      "human_size": "1,711,232,270 B (1,631.96 MB / 1.59 GB)",
+      "pct_of_grand_total": 15.38,
+      "dominant_category": "3. Build-only dependency",
+      "categories_exclusive_files": {
+        "1. Mandatory source code": 0,
+        "2. Runtime dependency": 51732,
+        "3. Build-only dependency": 4447,
+        "4. Regenerable files": 36,
+        "5. Persistent operational data": 0,
+        "6. Private user data": 440,
+        "7. Cache": 5540,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 4206,
+        "10. Unused/test/temp artifacts": 9668
+      },
+      "categories_exclusive_bytes": {
+        "1. Mandatory source code": 0,
+        "2. Runtime dependency": 552580588,
+        "3. Build-only dependency": 659059912,
+        "4. Regenerable files": 4857810,
+        "5. Persistent operational data": 0,
+        "6. Private user data": 4539449,
+        "7. Cache": 105286846,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 300448991,
+        "10. Unused/test/temp artifacts": 84458674
+      },
+      "categories_intrinsic_bytes": {
+        "1. Mandatory source code": 0,
+        "2. Runtime dependency": 552580588,
+        "3. Build-only dependency": 659059912,
+        "4. Regenerable files": 4857810,
+        "5. Persistent operational data": 0,
+        "6. Private user data": 4539449,
+        "7. Cache": 105286846,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 300448991,
+        "10. Unused/test/temp artifacts": 84458674
+      }
+    },
+    {
+      "root_id": "HermesUpdater",
+      "sanitized_root_path": "<WINDOWS_USER_HOME>/HermesUpdater",
+      "file_count": 66,
+      "bytes": 614663,
+      "human_size": "614,663 B (0.59 MB)",
+      "pct_of_grand_total": 0.0055,
+      "dominant_category": "10. Unused/test/temp artifacts",
+      "categories_exclusive_files": {
+        "1. Mandatory source code": 10,
+        "2. Runtime dependency": 0,
+        "3. Build-only dependency": 0,
+        "4. Regenerable files": 0,
+        "5. Persistent operational data": 13,
+        "6. Private user data": 1,
+        "7. Cache": 2,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 12,
+        "10. Unused/test/temp artifacts": 28
+      },
+      "categories_exclusive_bytes": {
+        "1. Mandatory source code": 148867,
+        "2. Runtime dependency": 0,
+        "3. Build-only dependency": 0,
+        "4. Regenerable files": 0,
+        "5. Persistent operational data": 8579,
+        "6. Private user data": 8818,
+        "7. Cache": 25164,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 18231,
+        "10. Unused/test/temp artifacts": 405004
+      },
+      "categories_intrinsic_bytes": {
+        "1. Mandatory source code": 148867,
+        "2. Runtime dependency": 0,
+        "3. Build-only dependency": 0,
+        "4. Regenerable files": 0,
+        "5. Persistent operational data": 8579,
+        "6. Private user data": 8818,
+        "7. Cache": 25164,
+        "8. Duplicate files": 0,
+        "9. Platform-specific binaries": 18231,
+        "10. Unused/test/temp artifacts": 405004
+      }
+    }
+  ],
+  "categories_10_mandatory": [
+    {
+      "category_id": 1,
+      "category": "1. Mandatory source code",
+      "exclusive_file_count": 52630,
+      "exclusive_bytes": 564479837,
+      "exclusive_human_size": "564,479,837 B (538.33 MB / 0.53 GB)",
+      "exclusive_pct_of_total": 5.0734,
+      "intrinsic_pre_dedup_file_count": 53946,
+      "intrinsic_pre_dedup_bytes": 700791799,
+      "intrinsic_pre_dedup_human_size": "700,791,799 B (668.33 MB / 0.65 GB)",
+      "intrinsic_pct_of_total": 6.2985
+    },
+    {
+      "category_id": 2,
+      "category": "2. Runtime dependency",
+      "exclusive_file_count": 229327,
+      "exclusive_bytes": 2432087247,
+      "exclusive_human_size": "2,432,087,247 B (2,319.42 MB / 2.27 GB)",
+      "exclusive_pct_of_total": 21.8589,
+      "intrinsic_pre_dedup_file_count": 229925,
+      "intrinsic_pre_dedup_bytes": 2509468664,
+      "intrinsic_pre_dedup_human_size": "2,509,468,664 B (2,393.22 MB / 2.34 GB)",
+      "intrinsic_pct_of_total": 22.5544
+    },
+    {
+      "category_id": 3,
+      "category": "3. Build-only dependency",
+      "exclusive_file_count": 58477,
+      "exclusive_bytes": 1459133014,
+      "exclusive_human_size": "1,459,133,014 B (1,391.54 MB / 1.36 GB)",
+      "exclusive_pct_of_total": 13.1143,
+      "intrinsic_pre_dedup_file_count": 58534,
+      "intrinsic_pre_dedup_bytes": 1463782045,
+      "intrinsic_pre_dedup_human_size": "1,463,782,045 B (1,395.97 MB / 1.36 GB)",
+      "intrinsic_pct_of_total": 13.156
+    },
+    {
+      "category_id": 4,
+      "category": "4. Regenerable files",
+      "exclusive_file_count": 760,
+      "exclusive_bytes": 45723766,
+      "exclusive_human_size": "45,723,766 B (43.61 MB)",
+      "exclusive_pct_of_total": 0.411,
+      "intrinsic_pre_dedup_file_count": 762,
+      "intrinsic_pre_dedup_bytes": 45824728,
+      "intrinsic_pre_dedup_human_size": "45,824,728 B (43.70 MB)",
+      "intrinsic_pct_of_total": 0.4119
+    },
+    {
+      "category_id": 5,
+      "category": "5. Persistent operational data",
+      "exclusive_file_count": 5676,
+      "exclusive_bytes": 214806958,
+      "exclusive_human_size": "214,806,958 B (204.86 MB / 0.20 GB)",
+      "exclusive_pct_of_total": 1.9306,
+      "intrinsic_pre_dedup_file_count": 5793,
+      "intrinsic_pre_dedup_bytes": 228351256,
+      "intrinsic_pre_dedup_human_size": "228,351,256 B (217.77 MB / 0.21 GB)",
+      "intrinsic_pct_of_total": 2.0524
+    },
+    {
+      "category_id": 6,
+      "category": "6. Private user data",
+      "exclusive_file_count": 2749,
+      "exclusive_bytes": 26767980,
+      "exclusive_human_size": "26,767,980 B (25.53 MB)",
+      "exclusive_pct_of_total": 0.2406,
+      "intrinsic_pre_dedup_file_count": 2750,
+      "intrinsic_pre_dedup_bytes": 26804681,
+      "intrinsic_pre_dedup_human_size": "26,804,681 B (25.56 MB)",
+      "intrinsic_pct_of_total": 0.2409
+    },
+    {
+      "category_id": 7,
+      "category": "7. Cache",
+      "exclusive_file_count": 50215,
+      "exclusive_bytes": 840626251,
+      "exclusive_human_size": "840,626,251 B (801.68 MB / 0.78 GB)",
+      "exclusive_pct_of_total": 7.5553,
+      "intrinsic_pre_dedup_file_count": 50215,
+      "intrinsic_pre_dedup_bytes": 840626251,
+      "intrinsic_pre_dedup_human_size": "840,626,251 B (801.68 MB / 0.78 GB)",
+      "intrinsic_pct_of_total": 7.5553
+    },
+    {
+      "category_id": 8,
+      "category": "8. Duplicate files",
+      "exclusive_file_count": 2280,
+      "exclusive_bytes": 269206325,
+      "exclusive_human_size": "269,206,325 B (256.74 MB / 0.25 GB)",
+      "exclusive_pct_of_total": 2.4195,
+      "intrinsic_pre_dedup_file_count": 0,
+      "intrinsic_pre_dedup_bytes": 0,
+      "intrinsic_pre_dedup_human_size": "0 B (0.00 MB)",
+      "intrinsic_pct_of_total": 0.0
+    },
+    {
+      "category_id": 9,
+      "category": "9. Platform-specific binaries",
+      "exclusive_file_count": 32337,
+      "exclusive_bytes": 4933066009,
+      "exclusive_human_size": "4,933,066,009 B (4,704.54 MB / 4.59 GB)",
+      "exclusive_pct_of_total": 44.3369,
+      "intrinsic_pre_dedup_file_count": 32358,
+      "intrinsic_pre_dedup_bytes": 4956276073,
+      "intrinsic_pre_dedup_human_size": "4,956,276,073 B (4,726.67 MB / 4.62 GB)",
+      "intrinsic_pct_of_total": 44.5455
+    },
+    {
+      "category_id": 10,
+      "category": "10. Unused/test/temp artifacts",
+      "exclusive_file_count": 26723,
+      "exclusive_bytes": 340415134,
+      "exclusive_human_size": "340,415,134 B (324.65 MB / 0.32 GB)",
+      "exclusive_pct_of_total": 3.0596,
+      "intrinsic_pre_dedup_file_count": 26891,
+      "intrinsic_pre_dedup_bytes": 354387024,
+      "intrinsic_pre_dedup_human_size": "354,387,024 B (337.97 MB / 0.33 GB)",
+      "intrinsic_pct_of_total": 3.1851
+    }
+  ],
+  "duplicate_analysis_sha256": {
+    "primary_scope_legacy_platform_and_monorepo": {
+      "min_file_size_bytes": 32768,
+      "candidate_regular_non_secret_files": 12395,
+      "size_collision_groups": 2290,
+      "size_collision_files": 5366,
+      "full_sha256_computations": 4267,
+      "duplicate_sha256_groups": 1985,
+      "total_files_in_duplicate_groups": 4265,
+      "redundant_duplicate_files": 2280,
+      "reclaimable_duplicate_bytes": 269206325,
+      "physical_separate_inode_reclaimable_bytes": 269206325,
+      "hardlinked_duplicate_bytes": 0,
+      "cross_root_reclaimable_bytes": 148557328,
+      "intra_root_reclaimable_bytes": 120648997
+    },
+    "extended_scope_all_5_roots": {
+      "min_file_size_bytes": 32768,
+      "candidate_regular_non_secret_files": 25705,
+      "size_collision_groups": 6209,
+      "size_collision_files": 16232,
+      "full_sha256_computations": 7233,
+      "duplicate_sha256_groups": 5773,
+      "total_files_in_duplicate_groups": 13708,
+      "redundant_duplicate_files": 7935,
+      "reclaimable_duplicate_bytes": 1564290336,
+      "physical_separate_inode_reclaimable_bytes": 895614524,
+      "hardlinked_duplicate_bytes": 668675812,
+      "cross_root_reclaimable_bytes": 883684714,
+      "intra_root_reclaimable_bytes": 680605622
+    }
+  },
+  "reparse_points_and_junctions_summary": {
+    "total_detected": 2017,
+    "recursed_count": 0,
+    "target_migration_policy": "Replace all Windows NTFS junctions and reparse points with portable POSIX symlinks inside containers."
+  },
+  "high_impact_bloat_hotspots": [
+    {
+      "id": 1,
+      "name": "Portable Windows win32-x64 Toolchains in <LOCAL_RUNTIME_DATA>/hermes/tools",
+      "bytes": 2265979709,
+      "mb": 2161.01,
+      "target_phases": [
+        "PHASE-08",
+        "PHASE-16",
+        "PHASE-18"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Unused External Vendor CLI Binaries (codex, claude, opencode, embedded-pg-win, non-linux-x64 runnerd) in paperclip-app\\node_modules",
+      "bytes": 1928849172,
+      "mb": 1839.49,
+      "target_phases": [
+        "PHASE-09",
+        "PHASE-18"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Global Windows NPM hermes-agent Duplicate Wrapper (.git packfiles + venv + node_modules + win32 python)",
+      "bytes": 1711232270,
+      "mb": 1631.96,
+      "target_phases": [
+        "PHASE-08"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Redundant Staging Monorepo <LEGACY_MONOREPO_ROOT> + .git Packfiles across roots + .hermes-clone-*",
+      "bytes": 1233501100,
+      "mb": 1176.36,
+      "target_phases": [
+        "PHASE-04",
+        "PHASE-05"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Hermes3D Full Dev node_modules & .next Source Maps",
+      "bytes": 842648810,
+      "mb": 803.61,
+      "target_phases": [
+        "PHASE-11",
+        "PHASE-18"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Package Manager Caches (<LOCAL_RUNTIME_DATA>/hermes/cache/uv + pnpm)",
+      "bytes": 669103407,
+      "mb": 638.11,
+      "target_phases": [
+        "PHASE-08",
+        "PHASE-18"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "3x Duplicated googleapiclient\\discovery_cache\\documents",
+      "bytes": 321804255,
+      "mb": 306.89,
+      "target_phases": [
+        "PHASE-08"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Per-Profile Duplication (10x models_dev_cache.json, per-profile lsp\\node_modules) & 2017 Symlinks/Junctions",
+      "bytes": 333646268,
+      "mb": 318.19,
+      "target_phases": [
+        "PHASE-08",
+        "PHASE-14",
+        "PHASE-17"
+      ]
+    }
+  ],
+  "errors": {
+    "stat_errors": [],
+    "hash_errors": []
+  }
+}

@@ -1,0 +1,261 @@
+openapi: 3.1.0
+info:
+  title: Order & Billing Demo API
+  version: 1.0.0
+  summary: Synthetic order creation, invoice calculation, and sandbox diagnostics contract.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: http://127.0.0.1:8080
+    description: Local synthetic development server
+paths:
+  /healthz:
+    get:
+      operationId: getHealth
+      summary: Liveness, readiness, and sandbox test mode status
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /api/v1/orders:
+    post:
+      operationId: createOrder
+      summary: Create an order with integer-cents line items and optional Idempotency-Key
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "200":
+          description: Idempotent replay of previously created order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/orders/{order_id}:
+    get:
+      operationId: getOrderById
+      summary: Retrieve an existing order by ID
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/invoices/preview:
+    post:
+      operationId: previewInvoice
+      summary: Calculate deterministic subtotal, volume discount, and basis-point tax
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoicePreviewRequest"
+      responses:
+        "200":
+          description: Calculated invoice breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceSummary"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/sandbox/diagnostics:
+    get:
+      operationId: getSandboxDiagnostics
+      summary: Synthetic QA & defensive scan test fixture endpoint (disabled unless SANDBOX_TEST_MODE=true)
+      responses:
+        "200":
+          description: Synthetic diagnostics payload when SANDBOX_TEST_MODE=true
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sandbox_test_mode, synthetic_fixture, order_count]
+                properties:
+                  sandbox_test_mode:
+                    type: boolean
+                  synthetic_fixture:
+                    type: boolean
+                  order_count:
+                    type: integer
+        "403":
+          description: Disabled when SANDBOX_TEST_MODE is false
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, service, version, sandbox_test_mode]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        service:
+          type: string
+        version:
+          type: string
+        sandbox_test_mode:
+          type: boolean
+    LineItemInput:
+      type: object
+      required: [sku, description, quantity, unit_price_cents]
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 64
+        description:
+          type: string
+          minLength: 1
+          maxLength: 200
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        unit_price_cents:
+          type: integer
+          minimum: 0
+          maximum: 100000000
+    CreateOrderRequest:
+      type: object
+      required: [customer_id, currency, items]
+      properties:
+        customer_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+        currency:
+          type: string
+          enum: [USD, EUR, GBP, SGD, IDR]
+        tax_bps:
+          type: integer
+          minimum: 0
+          maximum: 5000
+          default: 1000
+        discount_code:
+          type: [string, "null"]
+        items:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/LineItemInput"
+    InvoicePreviewRequest:
+      type: object
+      required: [currency, items]
+      properties:
+        currency:
+          type: string
+          enum: [USD, EUR, GBP, SGD, IDR]
+        tax_bps:
+          type: integer
+          minimum: 0
+          maximum: 5000
+          default: 1000
+        discount_code:
+          type: [string, "null"]
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/LineItemInput"
+    InvoiceSummary:
+      type: object
+      required:
+        - currency
+        - subtotal_cents
+        - discount_cents
+        - taxable_cents
+        - tax_bps
+        - tax_cents
+        - total_cents
+      properties:
+        currency:
+          type: string
+        subtotal_cents:
+          type: integer
+        discount_cents:
+          type: integer
+        taxable_cents:
+          type: integer
+        tax_bps:
+          type: integer
+        tax_cents:
+          type: integer
+        total_cents:
+          type: integer
+    OrderResponse:
+      type: object
+      required: [order_id, customer_id, status, created_at, invoice, items]
+      properties:
+        order_id:
+          type: string
+        customer_id:
+          type: string
+        status:
+          type: string
+        idempotent_replay:
+          type: boolean
+        created_at:
+          type: string
+        invoice:
+          $ref: "#/components/schemas/InvoiceSummary"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineItemInput"
+    ErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+        code:
+          type: string

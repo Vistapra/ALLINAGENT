@@ -1,0 +1,21 @@
+# ALLINAGENT Phase 10 — Minimal Pure-Python Defensive Core Dependencies for VulnClaw v0.4.1
+# Pin target: https://github.com/Netw0rkNoob/VulnClaw.git @ 0b34878f84b089b21fcf85ecd445315f14df0672
+#
+# Explicitly EXCLUDED heavy/offensive extras (~2.5+ GB saved):
+#   - [kb]: chromadb
+#   - [rerank]: sentence-transformers / torch (~2 GB)
+#   - [traffic]: mitmproxy, playwright
+#   - [web]: fastapi, uvicorn (replaced by <25 MB stdlib asyncio worker)
+#   - [pdf]: reportlab
+#   - python_execute sandbox deps: beautifulsoup4, lxml, pycryptodome, mcp
+#   - Non-Python subtrees: Rust TUI (tui/) and Vite frontend (frontend/)
+
+pydantic>=2.0
+pydantic-settings>=2.0
+pyyaml>=6.0
+httpx>=0.27
+openai>=1.66
+typer>=0.12
+rich>=13.7
+toml>=0.10
+jsonschema>=4.20

@@ -1,0 +1,8 @@
+# Synthetic Defensive Security Benchmark Fixture (ALLINAGENT Track A)
+# Intentionally includes a permissive sandbox flag (`CWE-489`) so new users can
+# verify VulnClaw L1 static configuration scanning out of the box after `git clone`.
+fixture_profile: order-billing-demo-sandbox
+sandbox: true
+verification_mode: true
+allow_external_network: false
+notes: "Inert static-analysis benchmark profile; production router defaults SANDBOX_TEST_MODE=false."

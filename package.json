@@ -1,0 +1,52 @@
+{
+  "name": "allinagent",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "ALLINAGENT — Lightweight, Cross-Platform Autonomous AI Engineering & Operations Platform (Hermes Agent × Paperclip × VulnClaw Defensive × Hermes3D 3D/2D Virtual Office × Telegram Control Center)",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "workspaces": [
+    "apps/hermes3d",
+    "apps/office-bridge",
+    "components/paperclip",
+    "workspaces/sample-project"
+  ],
+  "scripts": {
+    "cli": "python3 scripts/allinagent_cli.py",
+    "setup": "python3 scripts/allinagent_cli.py setup",
+    "doctor": "python3 scripts/allinagent_cli.py doctor",
+    "start": "docker compose -f compose.yaml up -d",
+    "start:prod": "docker compose -f compose.yaml -f compose.production.yaml up -d",
+    "stop": "docker compose -f compose.yaml down",
+    "start:bridge": "node apps/office-bridge/server.js",
+    "test:bridge": "node --test apps/office-bridge/tests/*.test.js",
+    "dev:office": "npm --prefix apps/hermes3d run dev",
+    "build:office": "npm --prefix apps/hermes3d run build",
+    "start:office": "npm --prefix apps/hermes3d run start",
+    "test:office": "npm --prefix apps/hermes3d run test",
+    "docker:build:hermes": "docker build -f deploy/docker/hermes.Dockerfile -t allinagent-hermes:local .",
+    "docker:build:paperclip": "docker build -f deploy/docker/paperclip.Dockerfile -t allinagent-paperclip:local .",
+    "docker:build:office-bridge": "docker build -f deploy/docker/office-bridge.Dockerfile -t allinagent-office-bridge:local .",
+    "docker:build:office": "docker build -f deploy/docker/office.Dockerfile -t allinagent-office:local .",
+    "docker:build:vulnclaw": "docker build -f deploy/docker/vulnclaw.Dockerfile -t allinagent-vulnclaw:local .",
+    "skills:install": "python3 skills/install_agent_skills.py",
+    "sbom": "python3 scripts/generate-sbom.py --validate",
+    "audit:release": "python3 scripts/audit-public-release.py",
+    "audit:release:strict": "python3 scripts/audit-public-release.py --strict-clean-tree",
+    "audit:self-test": "python3 scripts/audit-public-release.py --self-test"
+  },
+  "keywords": [
+    "allinagent",
+    "ai-agents",
+    "autonomous-engineering",
+    "virtual-office-3d",
+    "pixel-office-2d",
+    "hermes-agent",
+    "paperclip",
+    "vulnclaw-defensive",
+    "hermes3d",
+    "telegram-control-center"
+  ]
+}

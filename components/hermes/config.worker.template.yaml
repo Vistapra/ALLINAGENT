@@ -1,0 +1,48 @@
+# ALLINAGENT Isolated Hermes Corporate Worker Profile Template (`config.yaml`)
+# Materialized into `${HERMES_HOME:-/var/lib/allinagent/hermes}/profiles/<profile_id>/config.yaml` during provisioning.
+model:
+  default: "${LLM_MODEL}"
+  provider: custom
+  base_url: "${LLM_BASE_URL}"
+openrouter_base_url: "${LLM_BASE_URL}"
+providers:
+  custom:
+    base_url: "${LLM_BASE_URL}"
+    key_env: CUSTOM_API_KEY
+_config_version: 54
+updates:
+  pre_update_backup: "off"
+curator:
+  backup:
+    enabled: false
+skills:
+  ledger: false
+terminal:
+  backend: local
+  home_mode: real
+  persistent_shell: false
+  timeout: 180
+  client_env_passthrough:
+    - PAPERCLIP_API_URL
+    - PAPERCLIP_RUN_ID
+    - PAPERCLIP_TASK_ID
+    - PAPERCLIP_AGENT_ID
+    - PAPERCLIP_COMPANY_ID
+    - PAPERCLIP_WAKE_REASON
+    - PAPERCLIP_WAKE_COMMENT_ID
+  env_passthrough:
+    - PAPERCLIP_API_KEY
+code_execution:
+  mode: project
+network:
+  force_ipv4: true
+computer_use:
+  cua_telemetry: false
+  autostart: false
+  no_overlay: true
+approvals:
+  mode: smart
+  timeout: 60
+  cron_mode: deny
+  single_query_mode: deny
+  unattended_mode: deny

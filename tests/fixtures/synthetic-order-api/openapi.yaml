@@ -1,0 +1,261 @@
+openapi: 3.1.0
+info:
+  title: AcmeBistro Synthetic Order & Checkout API
+  version: 1.0.0
+  description: >
+    First-party MIT-licensed synthetic Laravel-style REST API fixture for ALLINAGENT Phase 27 Group E.
+    Uses the offline AcmePay sandbox simulator (never contacts external payment networks).
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: https://api.acmebistro.example
+    description: Synthetic AcmeBistro API environment
+components:
+  securitySchemes:
+    UserIdHeader:
+      type: apiKey
+      in: header
+      name: X-User-Id
+      description: Authenticated synthetic customer ID (integer).
+    GuestTokenHeader:
+      type: apiKey
+      in: header
+      name: X-Guest-Token
+      description: Constant-time verified guest order token.
+    AcmePayWebhookSignature:
+      type: apiKey
+      in: header
+      name: X-AcmePay-Signature
+      description: HMAC-SHA256 webhook signature formatted as sha256=<hex>.
+  schemas:
+    PayOrderRequest:
+      type: object
+      required:
+        - payment_method
+      properties:
+        payment_method:
+          type: string
+          enum: [card, wallet, bank_transfer]
+        amount_cents:
+          type: integer
+          minimum: 1
+          description: Optional client check value; server recomputes authoritative total from order_items (SYN-F01).
+        callback_url:
+          type: string
+          format: uri
+          description: Optional HTTPS post-checkout redirect restricted to allowlisted AcmeBistro hosts (SYN-F03).
+    CheckoutSessionResponse:
+      type: object
+      required:
+        - order_id
+        - order_number
+        - status
+        - amount_cents
+        - currency
+        - checkout_id
+        - payment_reference
+        - redirect_url
+        - gateway
+      properties:
+        order_id:
+          type: integer
+        order_number:
+          type: string
+        status:
+          type: string
+        amount_cents:
+          type: integer
+        currency:
+          type: string
+        checkout_id:
+          type: string
+        payment_reference:
+          type: string
+        redirect_url:
+          type: string
+          format: uri
+        gateway:
+          type: string
+    OrderStatusResponse:
+      type: object
+      required:
+        - order_id
+        - order_number
+        - status
+        - currency
+        - subtotal_cents
+        - tax_cents
+        - discount_cents
+        - authoritative_total_cents
+        - items
+      properties:
+        order_id:
+          type: integer
+        order_number:
+          type: string
+        status:
+          type: string
+        currency:
+          type: string
+        subtotal_cents:
+          type: integer
+        tax_cents:
+          type: integer
+        discount_cents:
+          type: integer
+        authoritative_total_cents:
+          type: integer
+        payment_reference:
+          type: [string, "null"]
+        paid_amount_cents:
+          type: [integer, "null"]
+        paid_at:
+          type: [string, "null"]
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              sku:
+                type: string
+              item_name:
+                type: string
+              quantity:
+                type: integer
+              unit_price_cents:
+                type: integer
+              line_total_cents:
+                type: integer
+    PaymentWebhookRequest:
+      type: object
+      required:
+        - event_id
+        - event_type
+        - order_id
+        - payment_reference
+        - amount_cents
+      properties:
+        event_id:
+          type: string
+        event_type:
+          type: string
+          enum: [payment.succeeded, payment.failed]
+        order_id:
+          type: integer
+        payment_reference:
+          type: string
+        amount_cents:
+          type: integer
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+paths:
+  /api/v1/orders/{id}/pay:
+    post:
+      operationId: payOrder
+      summary: Initiate an AcmePay synthetic sandbox checkout session for an order
+      security:
+        - UserIdHeader: []
+        - GuestTokenHeader: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            maxLength: 128
+          description: Optional client retry key stored in checkout_idempotency_keys with expires_at TTL (SYN-F04).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayOrderRequest'
+      responses:
+        '200':
+          description: Checkout session created (or idempotent replay returned)
+          headers:
+            X-Idempotency-Replayed:
+              schema:
+                type: string
+                enum: ['true', 'false']
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSessionResponse'
+        '401':
+          description: Missing authentication headers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Caller does not own this order (SYN-F02 protection)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Order not found
+        '409':
+          description: Order already paid or idempotency key payload mismatch
+        '422':
+          description: Amount tampering detected (SYN-F01) or disallowed callback_url host/scheme (SYN-F03)
+  /api/v1/orders/{id}/status:
+    get:
+      operationId: getOrderStatus
+      summary: Retrieve current payment status and authoritative item breakdown for an order
+      security:
+        - UserIdHeader: []
+        - GuestTokenHeader: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order status payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderStatusResponse'
+        '401':
+          description: Missing authentication headers
+        '403':
+          description: Caller does not own this order (SYN-F02 protection)
+        '404':
+          description: Order not found
+  /api/v1/webhooks/payment:
+    post:
+      operationId: handlePaymentWebhook
+      summary: Process HMAC-SHA256 signed AcmePay sandbox settlement webhook
+      security:
+        - AcmePayWebhookSignature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentWebhookRequest'
+      responses:
+        '200':
+          description: Webhook processed or deduplicated
+        '401':
+          description: Invalid or missing X-AcmePay-Signature HMAC
+        '422':
+          description: Settled amount does not match server authoritative order total

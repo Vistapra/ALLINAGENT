@@ -1,0 +1,213 @@
+{
+  "schema_version": "1.1.0",
+  "active_profile": "2_vcpu_8gb_profile",
+  "compose_production_reference": "compose.production.yaml",
+  "agent_activation_tiers": {
+    "wave1_warm_agent_profiles": [
+      "ceo",
+      "backend",
+      "qa",
+      "security-reviewer"
+    ],
+    "wave1_warm_hermes_profiles": [
+      "pcceoagent",
+      "pcbackenddeveloper",
+      "pcqaengineer",
+      "pcsecurityreviewer"
+    ],
+    "wave2_standby_agent_profiles": [
+      "cto",
+      "frontend",
+      "devops",
+      "security-lead",
+      "findings",
+      "remediation",
+      "compliance"
+    ],
+    "wave2_standby_hermes_profiles": [
+      "pcctoagent",
+      "pcfrontenddeveloper",
+      "pcdevopsengineer",
+      "pcsecuritylead",
+      "pcfindingsanalyst",
+      "pcremediationreviewer",
+      "pccompliancereporter"
+    ]
+  },
+  "profiles": {
+    "2_vcpu_8gb_profile": {
+      "description": "Default production profile aligned with compose.production.yaml for shared or dedicated 2 vCPU / 8 GB RAM Linux hosts (<= 1,536 MiB total cgroup ceiling) without swap thrashing.",
+      "target_hardware": {
+        "vcpus": 2,
+        "ram_mib": 8192,
+        "cgroup_version": 2
+      },
+      "memory_budget_mib": {
+        "idle_target_mib": 512,
+        "active_sustained_mib": 1280,
+        "always_on_stack_cgroup_mib": 1408,
+        "on_demand_security_burst_mib": 128,
+        "hard_stack_cgroup_ceiling_mib": 1536,
+        "recommended_host_free_buffer_mib": 1871
+      },
+      "cpu_budget": {
+        "idle_vcpu_target": 0.05,
+        "active_sustained_vcpu_target": 0.75,
+        "max_stack_vcpu_burst": 1.5
+      },
+      "containers": {
+        "postgres": {
+          "mem_limit": "224m",
+          "mem_limit_mib": 224,
+          "mem_reservation": "112m",
+          "cpus": "0.45",
+          "shared_buffers_mb": 56,
+          "max_connections": 35
+        },
+        "paperclip": {
+          "mem_limit": "416m",
+          "mem_limit_mib": 416,
+          "mem_reservation": "208m",
+          "cpus": "0.75",
+          "node_max_old_space_mb": 288
+        },
+        "hermes": {
+          "mem_limit": "384m",
+          "mem_limit_mib": 384,
+          "mem_reservation": "128m",
+          "cpus": "0.85"
+        },
+        "office-bridge": {
+          "mem_limit": "160m",
+          "mem_limit_mib": 160,
+          "mem_reservation": "64m",
+          "cpus": "0.40",
+          "node_max_old_space_mb": 112
+        },
+        "office": {
+          "mem_limit": "224m",
+          "mem_limit_mib": 224,
+          "mem_reservation": "96m",
+          "cpus": "0.50",
+          "node_max_old_space_mb": 160
+        },
+        "vulnclaw": {
+          "mode": "on-demand",
+          "compose_profile": "security",
+          "mem_limit": "128m",
+          "mem_limit_mib": 128,
+          "cpus": "0.50",
+          "idle_ttl_sec": 0
+        }
+      },
+      "worker_concurrency": {
+        "heavy_worker_concurrency": 1,
+        "max_parallel_engineering_tasks": 1,
+        "max_parallel_engineering_tasks_burst": 2,
+        "security_worker_mode": "on-demand",
+        "browser_worker_mode": "on-demand"
+      }
+    },
+    "standard_profile": {
+      "description": "Balanced profile for 4+ vCPU / 16+ GB RAM workstations and dedicated servers.",
+      "target_hardware": {
+        "vcpus": 4,
+        "ram_mib": 16384,
+        "cgroup_version": 2
+      },
+      "memory_budget_mib": {
+        "idle_target_mib": 1024,
+        "active_sustained_mib": 3072,
+        "always_on_stack_cgroup_mib": 3584,
+        "on_demand_security_burst_mib": 512,
+        "hard_stack_cgroup_ceiling_mib": 4096,
+        "recommended_host_free_buffer_mib": 4096
+      },
+      "cpu_budget": {
+        "idle_vcpu_target": 0.1,
+        "active_sustained_vcpu_target": 2.0,
+        "max_stack_vcpu_burst": 3.5
+      },
+      "containers": {
+        "postgres": {
+          "mem_limit": "512m",
+          "mem_limit_mib": 512,
+          "mem_reservation": "256m",
+          "cpus": "1.00",
+          "shared_buffers_mb": 128,
+          "max_connections": 80
+        },
+        "paperclip": {
+          "mem_limit": "1024m",
+          "mem_limit_mib": 1024,
+          "mem_reservation": "512m",
+          "cpus": "1.50",
+          "node_max_old_space_mb": 768
+        },
+        "hermes": {
+          "mem_limit": "1024m",
+          "mem_limit_mib": 1024,
+          "mem_reservation": "256m",
+          "cpus": "1.50"
+        },
+        "office-bridge": {
+          "mem_limit": "384m",
+          "mem_limit_mib": 384,
+          "mem_reservation": "128m",
+          "cpus": "0.75",
+          "node_max_old_space_mb": 256
+        },
+        "office": {
+          "mem_limit": "640m",
+          "mem_limit_mib": 640,
+          "mem_reservation": "256m",
+          "cpus": "1.00",
+          "node_max_old_space_mb": 448
+        },
+        "vulnclaw": {
+          "mode": "on-demand",
+          "compose_profile": "security",
+          "mem_limit": "512m",
+          "mem_limit_mib": 512,
+          "cpus": "1.00",
+          "idle_ttl_sec": 60
+        }
+      },
+      "worker_concurrency": {
+        "heavy_worker_concurrency": 2,
+        "max_parallel_engineering_tasks": 2,
+        "max_parallel_engineering_tasks_burst": 4,
+        "security_worker_mode": "on-demand",
+        "browser_worker_mode": "on-demand"
+      }
+    }
+  },
+  "limits": {
+    "max_parallel_engineering_tasks": 1,
+    "max_parallel_engineering_tasks_burst": 2,
+    "max_gui_interactive_tasks": 1,
+    "vulnclaw_execution_mode": "on-demand",
+    "browser_worker_mode": "on-demand",
+    "postgres_mem_limit_mib": 224,
+    "paperclip_mem_limit_mib": 416,
+    "hermes_mem_limit_mib": 384,
+    "office_bridge_mem_limit_mib": 160,
+    "office_mem_limit_mib": 224,
+    "vulnclaw_mem_limit_mib": 128,
+    "total_stack_ceiling_mib": 1536,
+    "paperclip_node_max_old_space_mb": 288,
+    "office_node_max_old_space_mb": 160,
+    "hermes3d_node_max_old_space_mb": 160,
+    "office_bridge_node_max_old_space_mb": 112,
+    "worker_max_turns_per_run": 25,
+    "worker_default_timeout_sec": 300,
+    "max_delegation_depth": 2,
+    "max_subtasks_per_parent": 6,
+    "max_retries_per_task": 2,
+    "min_free_disk_gb": 5.0,
+    "docker_log_max_mb": 10,
+    "docker_log_keep_files": 3,
+    "log_max_mb": 5,
+    "log_keep_files": 5
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "index": 9,
+  "agent_dir": "findings",
+  "role_slug": "findings_analyst",
+  "profile_id": "pcfindingsanalyst",
+  "name": "Findings Analyst",
+  "handle": "@findings",
+  "role": "researcher",
+  "title": "Security Findings Triage & Deduplication Analyst",
+  "department": "SOC Triage",
+  "reports_to_slug": "security_lead",
+  "wave": 2,
+  "default_activation": "STANDBY",
+  "budget_monthly_cents": 1000,
+  "timeout_sec": 180,
+  "max_turns": 12,
+  "toolsets": [
+    "file",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "skills"
+  ],
+  "toolsets_csv": "file,skills",
+  "hermes_home": "/data/hermes/profiles/pcfindingsanalyst",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/findings/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/findings/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_REPORTS_ROOT:-/data/reports}",
+  "skills": {
+    "primary": [
+      "security-audit"
+    ],
+    "specialist": [],
+    "on_demand": [],
+    "reference_only": [
+      "anthropic-triage"
+    ],
+    "experimental": [
+      "cve-triage"
+    ],
+    "disabled_bundled": []
+  }
+}

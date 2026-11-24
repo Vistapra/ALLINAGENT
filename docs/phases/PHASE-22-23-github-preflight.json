@@ -1,0 +1,105 @@
+{
+  "checked_at_utc": "2026-11-24T10:21:19.359094+00:00",
+  "verifier": "SA-29",
+  "credential_source_status": "ok",
+  "github_credential_entries_count": 1,
+  "token_classification": {
+    "token_kind": "fine_grained_pat",
+    "is_fine_grained_pat": true,
+    "is_classic_pat": false,
+    "is_oauth_token": false
+  },
+  "user": {
+    "http_status": 200,
+    "error": null,
+    "login": "Vistapra",
+    "type": "User",
+    "site_admin": false,
+    "disk_usage": null,
+    "owned_private_repos": null,
+    "total_private_repos": null,
+    "plan": null,
+    "oauth_scopes": null,
+    "token_expiration": null
+  },
+  "rate_limit": {
+    "http_status": 200,
+    "error": null,
+    "core_limit": 5000,
+    "core_used": 5,
+    "core_remaining": 4995,
+    "core_reset_epoch": 1795519192
+  },
+  "target_owner": {
+    "http_status": 200,
+    "login": "Vistapra",
+    "type": "User"
+  },
+  "target_repository_check": {
+    "target_repo": "Vistapra/ALLINAGENT",
+    "http_status": 404,
+    "exists": false,
+    "expected_404_absent": true,
+    "message": "Not Found",
+    "private": null,
+    "visibility": null,
+    "error": null
+  },
+  "repo_create_permission_probe": {
+    "endpoint": "POST /user/repos",
+    "payload_sent": {},
+    "http_status": 422,
+    "can_create_repos": true,
+    "forbidden_403": false,
+    "message": "New repository name must not be blank",
+    "documentation_url": "https://docs.github.com/rest/repos/repos#create-a-repository-for-the-authenticated-user",
+    "validation_errors": [
+      {
+        "resource": "Repository",
+        "code": "missing_field",
+        "field": "name",
+        "message": null
+      },
+      {
+        "resource": "Repository",
+        "code": "custom",
+        "field": "name",
+        "message": "name is too short (minimum is 1 character)"
+      }
+    ],
+    "accepted_oauth_scopes_header": null,
+    "error": null
+  },
+  "org_repo_create_permission_probe": null,
+  "ghcr_preflight": {
+    "user_packages_api_http_status": 403,
+    "user_packages_api_message": "Resource not accessible by personal access token",
+    "user_packages_accepted_scopes_header": null,
+    "user_packages_error": null,
+    "docker_login_token_http_status": 200,
+    "docker_login_token_errors": null,
+    "docker_login_token_transport_error": null,
+    "docker_v2_authenticated_ping_http_status": 200,
+    "docker_v2_authenticated_ping_errors": null,
+    "ghcr_repo_scope_token_http_status": 200,
+    "ghcr_repo_scope_granted_actions": [],
+    "ghcr_repo_scope_errors": null,
+    "ghcr_repo_scope_transport_error": null
+  },
+  "capabilities_summary": {
+    "authenticated": true,
+    "authenticated_as_vistapra": true,
+    "is_fine_grained_pat": true,
+    "is_classic_pat": false,
+    "target_repo_currently_absent": true,
+    "can_create_user_repo": true,
+    "can_create_org_repo": null,
+    "classic_has_repo_scope": null,
+    "classic_has_workflow_scope": null,
+    "classic_has_write_packages_scope": null,
+    "classic_has_read_packages_scope": null,
+    "can_list_user_container_packages": false,
+    "ghcr_docker_v2_login_works": true,
+    "ghcr_direct_pat_push_granted": false
+  }
+}

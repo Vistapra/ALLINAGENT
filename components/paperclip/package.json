@@ -1,0 +1,22 @@
+{
+  "name": "@allinagent/paperclip-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ALLINAGENT production wrapper for Paperclip server (pinned paperclipai@2026.1117.0 with deterministic patches and bloat/license pruning)",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.11.0"
+  },
+  "scripts": {
+    "postinstall": "node ./apply-paperclip-patches.mjs && node ./prune-paperclip-bloat.mjs",
+    "patch": "node ./apply-paperclip-patches.mjs",
+    "patch:verify": "node ./apply-paperclip-patches.mjs --verify-only",
+    "prune-bloat": "node ./prune-paperclip-bloat.mjs",
+    "prune-bloat:dry-run": "node ./prune-paperclip-bloat.mjs --dry-run",
+    "start": "node ./paperclip-server-entry.mjs"
+  },
+  "dependencies": {
+    "paperclipai": "2026.1117.0"
+  }
+}

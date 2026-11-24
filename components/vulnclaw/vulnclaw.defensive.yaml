@@ -1,0 +1,39 @@
+# ALLINAGENT Phase 10 — Isolated Defensive-Only VulnClaw Configuration
+# Enforces static L1+L2 source analysis only; disables python_execute, MCP servers, and recon keys.
+
+llm:
+  provider: custom
+  api_key: ""
+  base_url: ""
+  model: ""
+  auth_mode: static
+  chatgpt_auto_proxy: false
+
+mcp:
+  servers: {}
+
+safety:
+  enable_python_execute: false
+  python_execute_audit_enabled: true
+  tool_parallel: false
+  tool_max_concurrent: 1
+  permission_mode: ask
+  trusted_commands: []
+
+subagent:
+  enabled: false
+
+session:
+  auto_save: false
+  solve_auto_report: false
+  solve_report_show: false
+  plugin_runtime_enabled: false
+
+recon:
+  fofa_email: ""
+  fofa_key: ""
+  hunter_key: ""
+  quake_key: ""
+  zoomeye_key: ""
+  shodan_key: ""
+  zerozone_key: ""

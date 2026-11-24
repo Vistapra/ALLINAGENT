@@ -1,0 +1,124 @@
+# ==============================================================================
+# ALLINAGENT — Docker Build Context Exclusions (.dockerignore)
+# Keeps Docker BuildKit context minimal, deterministic, and secret-free.
+# ==============================================================================
+
+# 1. Version Control & CI Metadata
+.git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# 2. Dependencies & Virtual Environments
+node_modules/
+**/node_modules/
+.pnpm-store/
+.venv/
+**/.venv/
+*venv*/
+**/*venv*/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+runtime/
+vendor-cache/
+.upstream-cache/
+
+# 3. Host Build Outputs & Caches
+.next/
+**/.next/
+.turbo/
+**/.turbo/
+dist/
+**/dist/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# 4. Secrets, Credentials & Local Overrides (NEVER enter image layers!)
+.env
+.env.*
+!.env.example
+!.env.*.example
+config/secrets/
+**/secrets/
+config/organization-roster.json
+*.local
+*.local.*
+auth.json
+**/auth.json
+office-bridge-auth.json
+**/office-bridge-auth.json
+*secret*.json
+*token*.json
+*credentials*.json
+*.pem
+*.key
+*.pfx
+*.p12
+**/.certs/
+.certs/
+
+# 5. Host Runtime Data, Logs, Reports & Fetched Skill Caches
+data/
+office-data/
+logs/
+*.log
+reports/
+sbom.cdx.json
+skill-registry/
+skills/upstream/
+skills/staging/
+skills/reviewed/
+skills/quarantine/
+skills/agents/
+skills/cache/
+workers/
+*-worktrees/
+**/*-worktrees/
+*.pid
+*.pid.lock
+install-stamp.json
+
+# 6. Workspaces (Include ONLY README.md & sample-project)
+workspaces/*
+!workspaces/README.md
+!workspaces/sample-project/
+!workspaces/sample-project/**
+
+# 7. Databases, Dumps & Platform-Specific Binaries
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sql
+*.sql.gz
+*.dump
+*.exe
+*.dll
+*.pdb
+*.pyd
+
+# 8. Documentation & Local Audit Artifacts Not Needed Inside Runtime Layers
+docs/phases/
+ALLINAGENT-IMPLEMENTATION.json
+ALLINAGENT-IMPLEMENTATION.md
+
+# 9. OS & Editor Artifacts
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

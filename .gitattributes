@@ -1,0 +1,59 @@
+# ==============================================================================
+# ALLINAGENT — Cross-Platform Git Line-Ending & Binary Normalization
+# Ensures POSIX LF line endings for Linux containers, shell scripts, and patches.
+# ==============================================================================
+
+* text=auto eol=lf
+
+# Shell scripts, CLI entrypoints, Dockerfiles & patches MUST always use LF
+*.sh text eol=lf
+allinagent text eol=lf
+Dockerfile text eol=lf
+Dockerfile.* text eol=lf
+*.dockerfile text eol=lf
+*.patch text eol=lf
+*.diff text eol=lf
+.env.example text eol=lf
+
+# Source code & structured manifests normalized to LF
+*.py text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.sql text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+
+# Optional Windows host scripts retain CRLF
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.vbs text eol=crlf
+
+# Binary 3D, Pixel Art, Image, Audio & Font Assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.glb binary
+*.gltf binary
+*.bin binary
+*.hdr binary
+*.exr binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.wasm binary
+*.mp3 binary
+*.ogg binary
+*.wav binary

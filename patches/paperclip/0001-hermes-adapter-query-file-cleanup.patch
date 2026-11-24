@@ -1,0 +1,73 @@
+diff --git a/@paperclipai/hermes-paperclip-adapter/dist/server/execute.js b/@paperclipai/hermes-paperclip-adapter/dist/server/execute.js
+index 4df31b6..2f91319 100644
+--- a/@paperclipai/hermes-paperclip-adapter/dist/server/execute.js
++++ b/@paperclipai/hermes-paperclip-adapter/dist/server/execute.js
+@@ -17,8 +17,9 @@
+  *   --yolo             bypass dangerous-command approval prompts (agents have no TTY)
+  *   --source           session source tag for filtering
+  */
+ import fs from "node:fs/promises";
++import os from "node:os";
+ import path from "node:path";
+ import { runChildProcess, buildPaperclipEnv, buildRuntimeToolsEnv, renderTemplate, ensureAbsoluteDirectory, DEFAULT_PAPERCLIP_AGENT_PROMPT_TEMPLATE, joinPromptSections, selectPaperclipPromptSections, stringifyPaperclipWakePayload, isPaperclipRecoveryWakePayload, } from "@paperclipai/adapter-utils/server-utils";
+ import { HERMES_CLI, DEFAULT_TIMEOUT_SEC, DEFAULT_GRACE_SEC, DEFAULT_MODEL, } from "../shared/constants.js";
+ import { detectModel, resolveProvider, } from "./detect-model.js";
+@@ -369,11 +370,20 @@ export async function execute(ctx) {
+     }
+     const sessionId = persistSession ? prevSessionId : undefined;
+     const prompt = buildPrompt(ctx, promptConfig, { resumedSession: Boolean(sessionId) });
+     // ── Build command args ─────────────────────────────────────────────────
+-    // Use -Q (quiet) to get clean output: just response + session_id line
++    // ALLINAGENT_PATCH_EXECUTE_QUERY_FILE_V1
++    // Use --query-file on Windows or large prompts (> 6000 chars) to avoid CLI arg limits
+     const useQuiet = cfgBoolean(config.quiet) === true; // default false
+-    const args = ["chat", "-q", prompt];
++    let tempQueryFile = null;
++    const args = ["chat"];
++    if (process.platform === "win32" || prompt.length > 6000) {
++        tempQueryFile = path.join(os.tmpdir(), `paperclip-hermes-query-${ctx.runId || Date.now()}-${Math.random().toString(36).slice(2, 8)}.txt`);
++        args.push("--query-file", tempQueryFile);
++    }
++    else {
++        args.push("-q", prompt);
++    }
+     if (useQuiet)
+         args.push("-Q");
+     if (model) {
+         args.push("-m", model);
+@@ -486,16 +496,27 @@ export async function execute(ctx) {
+             }
+         }
+         return ctx.onLog(stream, chunk);
+     };
+-    const result = await runChildProcess(ctx.runId, hermesCmd, args, {
+-        cwd,
+-        env,
+-        timeoutSec,
+-        graceSec,
+-        onLog: wrappedOnLog,
+-        onSpawn: ctx.onSpawn,
+-    });
++    let result;
++    try {
++        if (tempQueryFile) {
++            await fs.writeFile(tempQueryFile, prompt, { encoding: "utf-8", mode: 0o600 });
++        }
++        result = await runChildProcess(ctx.runId, hermesCmd, args, {
++            cwd,
++            env,
++            timeoutSec,
++            graceSec,
++            onLog: wrappedOnLog,
++            onSpawn: ctx.onSpawn,
++        });
++    }
++    finally {
++        if (tempQueryFile) {
++            await fs.rm(tempQueryFile, { force: true }).catch(() => {});
++        }
++    }
+     // ── Parse output ───────────────────────────────────────────────────────
+     const parsed = parseHermesOutput(result.stdout || "", result.stderr || "");
+     await ctx.onLog("stdout", `[hermes] Exit code: ${result.exitCode ?? "null"}, timed out: ${result.timedOut}\n`);
+     if (parsed.sessionId) {

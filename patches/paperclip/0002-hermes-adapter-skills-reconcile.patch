@@ -1,0 +1,122 @@
+diff --git a/@paperclipai/hermes-paperclip-adapter/dist/server/skills.js b/@paperclipai/hermes-paperclip-adapter/dist/server/skills.js
+index eba4209..28574af 100644
+--- a/@paperclipai/hermes-paperclip-adapter/dist/server/skills.js
++++ b/@paperclipai/hermes-paperclip-adapter/dist/server/skills.js
+@@ -1,8 +1,8 @@
+ import fs from "node:fs/promises";
+ import os from "node:os";
+ import path from "node:path";
+-import { ensurePaperclipSkillSymlink, isPaperclipSkillSourceMissing, readInstalledSkillTargets, readPaperclipRuntimeSkillEntries, resolveLegacyPaperclipDesiredSkillNames, } from "@paperclipai/adapter-utils/server-utils";
++import { ensurePaperclipSkillSymlink, isPaperclipSkillSourceMissing, materializePaperclipSkillCopy, readInstalledSkillTargets, readPaperclipRuntimeSkillEntries, resolveLegacyPaperclipDesiredSkillNames, } from "@paperclipai/adapter-utils/server-utils";
+ import { fileURLToPath } from "node:url";
+ const __moduleDir = path.dirname(fileURLToPath(import.meta.url));
+ // ---------------------------------------------------------------------------
+ // Helpers
+@@ -41,11 +41,16 @@ async function scanHermesSkills(skillsHome) {
+     const entries = [];
+     try {
+         const categories = await fs.readdir(skillsHome, { withFileTypes: true });
+         for (const cat of categories) {
+-            if (!cat.isDirectory())
+-                continue;
+             const catPath = path.join(skillsHome, cat.name);
++            if (!cat.isDirectory()) {
++                if (!cat.isSymbolicLink())
++                    continue;
++                const linkedStat = await fs.stat(catPath).catch(() => null);
++                if (!linkedStat || !linkedStat.isDirectory())
++                    continue;
++            }
+             // Check if the category directory itself has a SKILL.md (top-level skill)
+             const topLevelSkillMd = path.join(catPath, "SKILL.md");
+             if (await fs.stat(topLevelSkillMd).catch(() => null)) {
+                 entries.push(await buildSkillEntry(cat.name, topLevelSkillMd, cat.name));
+@@ -167,8 +172,9 @@ async function buildHermesSkillSnapshot(config) {
+ export async function listHermesSkills(ctx) {
+     return buildHermesSkillSnapshot(ctx.config);
+ }
+ export async function reconcileHermesPaperclipSkills(config, requestedDesiredSkills) {
++    // ALLINAGENT_PATCH_SKILLS_RECONCILE_V1
+     const availableEntries = await readPaperclipRuntimeSkillEntries(config, __moduleDir);
+     const desiredSkills = requestedDesiredSkills
+         ? Array.from(new Set([
+             ...resolveLegacyPaperclipDesiredSkillNames({}, availableEntries),
+@@ -179,28 +185,70 @@ export async function reconcileHermesPaperclipSkills(config, requestedDesiredSki
+     const skillsHome = path.join(resolveHermesHome(config), "skills");
+     await fs.mkdir(skillsHome, { recursive: true });
+     const installed = await readInstalledSkillTargets(skillsHome);
+     const availableByRuntimeName = new Map(availableEntries.map((entry) => [entry.runtimeName, entry]));
++    const symlinkType = process.platform === "win32" ? "junction" : "dir";
++    const isCopyFallbackError = (err) => Boolean(err && typeof err === "object" && (err.code === "EPERM" || err.code === "ENOSYS" || err.code === "EXDEV"));
++    const normalizeLinkPath = (p) => (p ? p.replace(/^\\\\\?\\/, "").replace(/[\\/]+$/, "") : null);
++    const pathsEqual = (a, b) => {
++        if (!a || !b)
++            return false;
++        return process.platform === "win32"
++            ? path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase()
++            : path.resolve(a) === path.resolve(b);
++    };
+     for (const entry of availableEntries) {
+         if (!desiredSet.has(entry.key) || isPaperclipSkillSourceMissing(entry))
+             continue;
+         const target = path.join(skillsHome, entry.runtimeName);
+-        await ensurePaperclipSkillSymlink(entry.source, target);
+-        const linkedSource = await fs.readlink(target).catch(() => null);
+-        const resolvedSource = linkedSource
+-            ? path.resolve(path.dirname(target), linkedSource)
+-            : null;
+-        if (resolvedSource !== path.resolve(entry.source)) {
++        try {
++            await ensurePaperclipSkillSymlink(entry.source, target, (s, t) => fs.symlink(s, t, symlinkType));
++        }
++        catch (err) {
++            if (isCopyFallbackError(err)) {
++                await materializePaperclipSkillCopy(entry.source, target);
++                continue;
++            }
++            throw err;
++        }
++        let linkedSource = await fs.readlink(target).catch(() => null);
++        let cleanLinked = normalizeLinkPath(linkedSource);
++        let resolvedSource = cleanLinked ? path.resolve(path.dirname(target), cleanLinked) : null;
++        let sameTarget = resolvedSource ? pathsEqual(resolvedSource, entry.source) : true;
++        if (resolvedSource && !sameTarget) {
++            const normLower = resolvedSource.toLowerCase();
++            const isManagedOrigin = normLower.includes("paperclip") || normLower.includes("skill-registry") || entry.runtimeName.includes("--");
++            if (isManagedOrigin) {
++                await fs.unlink(target).catch(() => fs.rmdir(target).catch(() => {}));
++                try {
++                    await fs.symlink(entry.source, target, symlinkType);
++                }
++                catch (err) {
++                    if (isCopyFallbackError(err)) {
++                        await materializePaperclipSkillCopy(entry.source, target);
++                        continue;
++                    }
++                    throw err;
++                }
++                linkedSource = await fs.readlink(target).catch(() => null);
++                cleanLinked = normalizeLinkPath(linkedSource);
++                resolvedSource = cleanLinked ? path.resolve(path.dirname(target), cleanLinked) : null;
++                sameTarget = resolvedSource ? pathsEqual(resolvedSource, entry.source) : true;
++            }
++        }
++        if (resolvedSource && !sameTarget) {
+             throw new Error(`Cannot reconcile Hermes skill "${entry.key}" because ${target} is occupied by another installation.`);
+         }
+     }
+     for (const [name, installedEntry] of installed.entries()) {
++        // Preserve externally managed skill-registry / `--` namespaced role skills
+         const available = availableByRuntimeName.get(name);
+         if (!available || desiredSet.has(available.key))
+             continue;
+-        if (installedEntry.targetPath !== available.source)
++        const normInstalled = normalizeLinkPath(installedEntry.targetPath);
++        if (!normInstalled || !pathsEqual(normInstalled, available.source))
+             continue;
+-        await fs.unlink(path.join(skillsHome, name)).catch(() => { });
++        await fs.unlink(path.join(skillsHome, name)).catch(() => fs.rmdir(path.join(skillsHome, name)).catch(() => {}));
+     }
+     return desiredSkills;
+ }
+ export async function syncHermesSkills(ctx, desiredSkills) {

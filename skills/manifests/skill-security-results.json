@@ -1,0 +1,551 @@
+{
+  "schema_version": "2.0.0",
+  "generated_at": "2026-11-24T00:00:00Z",
+  "scanner_used": "getsentry/skills/skill-scanner @ a582c51ee29d0f35e6ac321340796f77d43da733 + recursive Python AST dangerous-pattern scanner",
+  "quarantined_excluded_files": [
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-agent-safety.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-ai-security.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-code-audit.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-compliance.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/aradotso-web-vuln-testing.md",
+      "reason": "Contains offensive filter-bypass / live prompt-injection test payloads outside defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-business-logic.md",
+      "reason": "Contains offensive web vulnerability test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-forced-browsing.md",
+      "reason": "Contains offensive web vulnerability test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-host-header.md",
+      "reason": "Contains offensive web vulnerability test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-open-redirect.md",
+      "reason": "Contains offensive web vulnerability test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "file": "references/testing-xss.md",
+      "reason": "Contains offensive XSS test payloads outside read-only defensive Security Reviewer scope."
+    },
+    {
+      "pkg_id": "threat-model",
+      "file": "bootstrap.md",
+      "reason": "Deprecated autonomous harness bootstrap excluded per defensive REFERENCE_ONLY policy; threat modeling methodology retained."
+    }
+  ],
+  "frontmatter_name_normalizations": {
+    "react-best-practices": {
+      "from": "vercel-react-best-practices",
+      "to": "react-best-practices"
+    },
+    "pw-generate": {
+      "from": "generate",
+      "to": "pw-generate"
+    },
+    "pw-fix": {
+      "from": "fix",
+      "to": "pw-fix"
+    },
+    "pw-coverage": {
+      "from": "coverage",
+      "to": "pw-coverage"
+    },
+    "pw-report": {
+      "from": "report",
+      "to": "pw-report"
+    }
+  },
+  "results": {
+    "anthropic-patch": {
+      "pkg_id": "anthropic-patch",
+      "pinned_commit_sha": "d3bea6b5793b5f3d59a75ebe69a58efa88383145",
+      "upstream_package_sha256": "ea92be1278cd0eca2c064e9936068d8b71698bc16b645840563c1de0b6eef6ff",
+      "sentry_finding_counts": {
+        "medium": 1
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "REFERENCE_ONLY_REVIEWED_METHODOLOGY",
+      "manual_review_verdict": "RESTRICTED \u2014 Autonomous harness bootstrap quarantined; defensive methodology retained as read-only reference."
+    },
+    "anthropic-triage": {
+      "pkg_id": "anthropic-triage",
+      "pinned_commit_sha": "d3bea6b5793b5f3d59a75ebe69a58efa88383145",
+      "upstream_package_sha256": "a7e450becdeebdf58864f8fb69a5f722610cb9e21f7e1b4c4ad7e02fb0db4fee",
+      "sentry_finding_counts": {
+        "medium": 1
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "REFERENCE_ONLY_REVIEWED_METHODOLOGY",
+      "manual_review_verdict": "RESTRICTED \u2014 Autonomous harness bootstrap quarantined; defensive methodology retained as read-only reference."
+    },
+    "api-design-reviewer": {
+      "pkg_id": "api-design-reviewer",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "ef851eaa838c6566d0517406a61f7ae358ecaebff2369082a5ac00ed0ffc3205",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/api_linter.py",
+        "scripts/api_scorecard.py",
+        "scripts/breaking_change_detector.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "c-level-skills": {
+      "pkg_id": "c-level-skills",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "9915ad7f0b5c0e3d96a78a5852a1f0e0de30376ece0084cca2d7d80acd6b2c24",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "ceo-advisor": {
+      "pkg_id": "ceo-advisor",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "ad4c6eacb90a35450cd7b37b4be6ee04d0e6456e51ccc91be5b6850c15c44695",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/financial_scenario_analyzer.py",
+        "scripts/strategy_analyzer.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "ci-cd-pipeline-builder": {
+      "pkg_id": "ci-cd-pipeline-builder",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "2768881185e7172a5f0f94c917ea512c910d948cbf061e298c7cb2519c923c18",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/cache_optimizer.py",
+        "scripts/pipeline_generator.py",
+        "scripts/pipeline_linter.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "ciso-advisor": {
+      "pkg_id": "ciso-advisor",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "2680c7a423854f3d30cbbfce3c9b2bb6535b79cdacc048b2f6d41a7862c282e5",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/compliance_tracker.py",
+        "scripts/risk_quantifier.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "compliance-os": {
+      "pkg_id": "compliance-os",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "9af3734b1f1eaa3d14405eb4cf950e597f0c6e268be1eb1ef5c93257c9e6c6ac",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/audit_simulator.py",
+        "scripts/cross_framework_mapper.py",
+        "scripts/evidence_pool_generator.py",
+        "scripts/framework_selector.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "cto-advisor": {
+      "pkg_id": "cto-advisor",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "2e0453c6b3d6abdb6d7dee0dc2753f2269521e6142c2ecc6aa2ea3f2c6c8cb66",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/team_scaling_calculator.py",
+        "scripts/tech_debt_analyzer.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "cto-review": {
+      "pkg_id": "cto-review",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "757f1044a79fa51b0343c36c01384e8a9053244a446cdab79c98da2d864f3322",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "cve-triage": {
+      "pkg_id": "cve-triage",
+      "pinned_commit_sha": "3517c8fb10531103c403f09143966d62b2a0790f",
+      "upstream_package_sha256": "2729ff7e14d0ac87d04f1849abbc0c7f45846ae9fc8d240551e6850718ed891d",
+      "sentry_finding_counts": {
+        "critical": 1
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/emit_vex.py",
+        "scripts/fetch_advisory.py",
+        "scripts/fetch_epss.py",
+        "scripts/fetch_kev.py",
+        "scripts/parse_lockfile.py",
+        "scripts/prepare_evidence.py",
+        "scripts/render_decision.py",
+        "scripts/resolve_ssvc.py"
+      ],
+      "disposition": "EXPERIMENTAL_ISOLATED",
+      "manual_review_verdict": "EXPERIMENTAL \u2014 Regex false positive on 'args.profile' verified benign; Python/Poetry/uv scope; isolated in experimental dir."
+    },
+    "docx": {
+      "pkg_id": "docx",
+      "pinned_commit_sha": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "upstream_package_sha256": "42a9c474c2e351d8770eb57035d49654345f97312629f423c6e22e34b334bc79",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/__init__.py",
+        "scripts/accept_changes.py",
+        "scripts/comment.py",
+        "scripts/merge_runs.py",
+        "scripts/office/helpers/__init__.py",
+        "scripts/office/helpers/pptx_chart.py",
+        "scripts/office/helpers/pptx_slide.py",
+        "scripts/office/helpers/pptx_theme.py",
+        "scripts/office/soffice.py",
+        "scripts/office/validate.py",
+        "scripts/office/validators/__init__.py",
+        "scripts/office/validators/base.py",
+        "scripts/office/validators/docx.py",
+        "scripts/office/validators/pptx.py",
+        "scripts/office/validators/redlining.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "focused-fix": {
+      "pkg_id": "focused-fix",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "f43b390a11f95c3045f495a3b2db6cf3ca555d0877c74fc7bff20d048fbee825",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "evals/grader.py",
+        "evals/runner.py",
+        "scripts/change_scope_analyzer.py",
+        "scripts/diff_scope_check.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "frontend-design": {
+      "pkg_id": "frontend-design",
+      "pinned_commit_sha": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "upstream_package_sha256": "e6eaf89f4712660dc870b6288f54ae7c61e15eaf12cbc82cbd75049a3974fbfd",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "pdf": {
+      "pkg_id": "pdf",
+      "pinned_commit_sha": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "upstream_package_sha256": "918fd65c9922b859936ad8a27dc33634a845d06d18444b0699a5ff56cbb0eb9c",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/check_bounding_boxes.py",
+        "scripts/check_fillable_fields.py",
+        "scripts/convert_pdf_to_images.py",
+        "scripts/create_validation_image.py",
+        "scripts/extract_form_field_info.py",
+        "scripts/extract_form_structure.py",
+        "scripts/fill_fillable_fields.py",
+        "scripts/fill_pdf_form_with_annotations.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "pw": {
+      "pkg_id": "pw",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "c80f09b2db3f287953e1722dcf68ecf485ca97343d334e7b4a3cb3f8a80c9ff5",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "pw-coverage": {
+      "pkg_id": "pw-coverage",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "6c88fb9bd6ed0a98cf31c074ddfccba74ee04779f02a09c311749b8c74ceb16f",
+      "sentry_finding_counts": {
+        "medium": 1
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "pw-fix": {
+      "pkg_id": "pw-fix",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "5a49a4d88266b7c886d8f7c6017b6239a1f8a2860062a8c538029cff0be248ef",
+      "sentry_finding_counts": {
+        "medium": 1
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "pw-generate": {
+      "pkg_id": "pw-generate",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "4816a03931dfb05164a546d4a8b0d613c6218ba9866b6ef0f524ff777b7fb43f",
+      "sentry_finding_counts": {
+        "medium": 1
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "pw-report": {
+      "pkg_id": "pw-report",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "43051a479f230cd49ea0819c50530631a606377730842679ae05e1180780d572",
+      "sentry_finding_counts": {
+        "medium": 1
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "pw-review": {
+      "pkg_id": "pw-review",
+      "pinned_commit_sha": "5909a72e62b5fbb809935fb6a55b58bdbe175074",
+      "upstream_package_sha256": "e2663f9c9d7c7afa2a6a65dcc4636ac30e41df99ec6b07bd2ff3833f50f99580",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "react-best-practices": {
+      "pkg_id": "react-best-practices",
+      "pinned_commit_sha": "5a37a6329fbad3666c3207392a6a7c0110e92efb",
+      "upstream_package_sha256": "8591a78f794e6476ec5d1c20bcd14050d3a32cf800fab17116e0d0f25e1db083",
+      "sentry_finding_counts": {
+        "medium": 1
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "secondsky-cybersecurity-ref": {
+      "pkg_id": "secondsky-cybersecurity-ref",
+      "pinned_commit_sha": "14966c3024f48eea0386eb970b230ea0f4bebd33",
+      "upstream_package_sha256": "240c3a539cfd402e4d2b33d3ab9d96940acf2a187bb111e39c2e448982685925",
+      "sentry_finding_counts": {
+        "medium": 1,
+        "critical": 3
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "REFERENCE_ONLY_WITH_QUARANTINED_FILES",
+      "manual_review_verdict": "RESTRICTED \u2014 Offensive XSS/prompt-injection payload files quarantined; defensive checklists retained as read-only reference."
+    },
+    "security-audit": {
+      "pkg_id": "security-audit",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "efe612079b94fd7a72f9d3c5caaace03bae3ea37db202e7808115846ce3491e7",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/audit_common.py",
+        "scripts/audit_run.py",
+        "scripts/ledger_rules.py",
+        "scripts/promote_evidence.py",
+        "scripts/validate_coverage_ledger.py",
+        "scripts/validate_findings.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "security-vuln-remediation": {
+      "pkg_id": "security-vuln-remediation",
+      "pinned_commit_sha": "4d87c91d49b881ccc7dc64667c1dce5a84c535d6",
+      "upstream_package_sha256": "71b25ea5bdd32ea25565c0cfdd6050061a8cb8e93e29d7f7193dfd8015404153",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "senior-architect": {
+      "pkg_id": "senior-architect",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "db9b41800fbf08af1876bd4367a78ebd01e85ecdeeb974be088b37e8423aa564",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "assets/sample_layered_app/controllers/__init__.py",
+        "assets/sample_layered_app/controllers/order_controller.py",
+        "assets/sample_layered_app/models/__init__.py",
+        "assets/sample_layered_app/models/order.py",
+        "assets/sample_layered_app/repositories/__init__.py",
+        "assets/sample_layered_app/repositories/order_repository.py",
+        "assets/sample_layered_app/services/__init__.py",
+        "assets/sample_layered_app/services/order_service.py",
+        "scripts/architecture_diagram_generator.py",
+        "scripts/dependency_analyzer.py",
+        "scripts/project_architect.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "senior-backend": {
+      "pkg_id": "senior-backend",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "03334977bef3318d1260973f334de5c99525075241f2ac11699428df947533e5",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 1,
+      "scripts_reviewed": [
+        "scripts/api_load_tester.py",
+        "scripts/api_scaffolder.py",
+        "scripts/database_migration_tool.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "senior-devops": {
+      "pkg_id": "senior-devops",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "64b332d8266141332e92ca87abd4658e6dae14dd23f4088087e73b254e5f2be5",
+      "sentry_finding_counts": {
+        "high": 1
+      },
+      "deep_extra_findings_count": 1,
+      "scripts_reviewed": [
+        "assets/sample-python-app/app.py",
+        "assets/sample-python-app/test_app.py",
+        "scripts/deployment_manager.py",
+        "scripts/pipeline_generator.py",
+        "scripts/terraform_scaffolder.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "senior-qa": {
+      "pkg_id": "senior-qa",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "9155d0f1d6a6873f567115cba51100835c8d8ce6206110944c88c69dead60044",
+      "sentry_finding_counts": {
+        "high": 3
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/coverage_analyzer.py",
+        "scripts/e2e_test_scaffolder.py",
+        "scripts/test_suite_generator.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "senior-security": {
+      "pkg_id": "senior-security",
+      "pinned_commit_sha": "25bf86b89c6c1e63f433a5b65e8cfcb6cf0b7ad3",
+      "upstream_package_sha256": "b3c92c8f1977d22643b4ad132af03ae8c51a2e5d7293e7df37f3e4602efdfaab",
+      "sentry_finding_counts": {
+        "high": 1,
+        "critical": 1,
+        "medium": 2
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "assets/sample_secrets_clean.js",
+        "assets/sample_secrets_flawed.js",
+        "scripts/secret_scanner.py",
+        "scripts/threat_modeler.py"
+      ],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "skill-scanner": {
+      "pkg_id": "skill-scanner",
+      "pinned_commit_sha": "a582c51ee29d0f35e6ac321340796f77d43da733",
+      "upstream_package_sha256": "a51d7dceaa0778b2d17dac89d83fde191260b26ecdad566a85ff51c0441b19db",
+      "sentry_finding_counts": {
+        "high": 12,
+        "critical": 23,
+        "medium": 1
+      },
+      "deep_extra_findings_count": 0,
+      "scripts_reviewed": [
+        "scripts/scan_skill.py"
+      ],
+      "disposition": "APPROVED_PIPELINE_GATE",
+      "manual_review_verdict": "PASS \u2014 Static offline scanner; 36 self-scan hits are its own reference pattern tables."
+    },
+    "terraform-skill": {
+      "pkg_id": "terraform-skill",
+      "pinned_commit_sha": "f5a195992d84c8fb075b0176d666967cd07d2081",
+      "upstream_package_sha256": "f0c015113a597e1e1a6419bae9d25b4a2a73d5ddb5b90a7ac044651ce228f38a",
+      "sentry_finding_counts": {
+        "high": 1,
+        "critical": 2
+      },
+      "deep_extra_findings_count": 1,
+      "scripts_reviewed": [],
+      "disposition": "APPROVED_PRODUCTION",
+      "manual_review_verdict": "PASS \u2014 Zero malicious patterns; any regex hits manually verified as benign examples/regexes; frontmatter normalized."
+    },
+    "threat-model": {
+      "pkg_id": "threat-model",
+      "pinned_commit_sha": "d3bea6b5793b5f3d59a75ebe69a58efa88383145",
+      "upstream_package_sha256": "8bfb727803f09cb472aa1fddd12445074da8120198f9b326b44a6684b171d44e",
+      "sentry_finding_counts": {},
+      "deep_extra_findings_count": 2,
+      "scripts_reviewed": [],
+      "disposition": "REFERENCE_ONLY_REVIEWED_METHODOLOGY",
+      "manual_review_verdict": "RESTRICTED \u2014 Autonomous harness bootstrap quarantined; defensive methodology retained as read-only reference."
+    }
+  }
+}

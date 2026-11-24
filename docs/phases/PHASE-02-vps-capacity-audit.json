@@ -1,0 +1,839 @@
+{
+  "phase": "PHASE-02",
+  "title": "VPS Capacity, Service & Compatibility Audit",
+  "audit_metadata": {
+    "timestamp_utc": "2026-11-24T07:32:44Z",
+    "target_host": "<TARGET_VPS_IPV4>",
+    "hostname": "<TARGET_VPS_HOSTNAME>",
+    "access_mode": "READ_ONLY_SSH_BATCHMODE",
+    "mutations_performed": 0,
+    "secrets_inspected": 0,
+    "overall_verdict": "PASS_WITH_STRICT_RESOURCE_CAPS",
+    "summary": "VPS <TARGET_VPS_IPV4> (Ubuntu 24.04.4 LTS, 2 vCPU AMD EPYC 9354P, 7.755 GiB RAM, 95.82 GiB NVMe/SSD ext4) is healthy and compatible with Dockerized ALLINAGENT deployment under /opt/allinagent behind host Nginx 1.30.2, PROVIDED strict Docker cgroup memory/CPU limits (<= 1,536 MiB total hard cap, <= 768 MiB idle, <= 1,280 MiB active), off-host or memory-capped image builds, loopback-only port bindings (127.0.0.1:8200-8219), and isolated Docker bridge networking are enforced.",
+    "sanitization_status": "PUBLIC_RELEASE_SANITIZED"
+  },
+  "system_specs": {
+    "os": {
+      "name": "Ubuntu",
+      "version": "24.04.4 LTS (Noble Numbat)",
+      "version_id": "24.04",
+      "codename": "noble",
+      "kernel": "6.8.0-149-generic",
+      "arch": "x86_64",
+      "timezone": "Etc/UTC",
+      "ntp_synchronized": true,
+      "cgroup_filesystem": "cgroup2fs"
+    },
+    "cpu": {
+      "vendor": "AuthenticAMD",
+      "model_name": "AMD EPYC 9354P 32-Core Processor",
+      "hypervisor": "KVM (QEMU pc-i440fx-11.0)",
+      "vcpus": 2,
+      "sockets": 1,
+      "cores_per_socket": 2,
+      "threads_per_core": 1,
+      "numa_nodes": 1,
+      "l1d_cache": "128 KiB (2 instances)",
+      "l1i_cache": "128 KiB (2 instances)",
+      "l2_cache": "1 MiB (2 instances)",
+      "l3_cache": "32 MiB (2 instances)",
+      "avx512_supported": true
+    },
+    "sysctl": {
+      "vm_swappiness": 10,
+      "vm_overcommit_memory": 0,
+      "vm_overcommit_ratio": 50,
+      "vm_max_map_count": 1048576,
+      "fs_inotify_max_user_watches": 524288,
+      "fs_inotify_max_user_instances": 512,
+      "fs_file_max": 2097152
+    }
+  },
+  "memory_and_swap": {
+    "ram": {
+      "total_bytes": 8326610944,
+      "total_mib": 7940.88,
+      "total_gib": 7.755,
+      "used_bytes": 4753895424,
+      "used_mib": 4533.67,
+      "used_gib": 4.427,
+      "used_pct": 57.09,
+      "free_bytes": 502636544,
+      "free_mib": 479.35,
+      "shared_bytes": 433569792,
+      "shared_mib": 413.48,
+      "buff_cache_bytes": 3816624128,
+      "buff_cache_mib": 3639.82,
+      "available_bytes": 3572715520,
+      "available_kib": 3488980,
+      "available_mib": 3407.21,
+      "available_gib": 3.327,
+      "available_pct": 42.91
+    },
+    "swap": {
+      "total_bytes": 6442442752,
+      "total_mib": 6144.0,
+      "total_gib": 6.0,
+      "used_bytes": 2819960832,
+      "used_mib": 2689.32,
+      "used_gib": 2.626,
+      "used_pct": 43.77,
+      "free_bytes": 3622481920,
+      "free_mib": 3454.67,
+      "free_gib": 3.374,
+      "swap_cached_kib": 435328,
+      "devices": [
+        {
+          "path": "/swapfile",
+          "type": "file",
+          "size_gib": 4.0,
+          "used_gib": 2.6,
+          "priority": -2
+        },
+        {
+          "path": "/home/.swap",
+          "type": "file",
+          "size_gib": 2.0,
+          "used_gib": 0.0,
+          "priority": -3
+        }
+      ]
+    },
+    "commit_accounting": {
+      "commit_limit_kib": 10357176,
+      "commit_limit_gib": 9.877,
+      "committed_as_kib": 22743376,
+      "committed_as_gib": 21.69,
+      "overcommit_ratio_actual": 2.196,
+      "anon_pages_kib": 3470108,
+      "slab_kib": 1100520,
+      "sreclaimable_kib": 908592,
+      "sunreclaim_kib": 191928
+    }
+  },
+  "disk_and_inodes": {
+    "root_filesystem": {
+      "device": "/dev/sda1",
+      "mountpoint": "/",
+      "fstype": "ext4",
+      "total_bytes": 102888095744,
+      "total_gib": 95.82,
+      "used_bytes": 51508563968,
+      "used_gib": 47.97,
+      "available_bytes": 51362754560,
+      "available_gib": 47.84,
+      "use_pct": 51,
+      "inodes_total": 12976128,
+      "inodes_used": 1103848,
+      "inodes_free": 11872280,
+      "inode_use_pct": 9
+    },
+    "boot_filesystems": [
+      {
+        "device": "/dev/sda16",
+        "mountpoint": "/boot",
+        "fstype": "ext4",
+        "total_bytes": 923156480,
+        "used_bytes": 122339328,
+        "available_bytes": 736174080,
+        "use_pct": 15
+      },
+      {
+        "device": "/dev/sda15",
+        "mountpoint": "/boot/efi",
+        "fstype": "vfat",
+        "total_bytes": 109395456,
+        "used_bytes": 6399488,
+        "available_bytes": 102995968,
+        "use_pct": 6
+      }
+    ],
+    "top_level_usage_summary": {
+      "/opt": "388M",
+      "/opt/allinagent": "DOES_NOT_EXIST",
+      "/home": "7.4G (includes 2.0G /home/.swap)",
+      "/swapfile": "4.0G",
+      "/var/www": "1.2G",
+      "/var/log": "665M",
+      "/var/lib/containerd": "379M",
+      "/var/lib/apt": "208M",
+      "/var/cache": "187M",
+      "/var/lib/crowdsec": "101M",
+      "/var/backups": "52M",
+      "docker_images": "27.0GB (39 total, 30 active, 18.96GB reclaimable)",
+      "docker_build_cache": "2.837GB (137 entries)",
+      "docker_local_volumes": "1.665GB (12 active volumes)",
+      "docker_containers_rw": "366.5MB (34 containers)"
+    }
+  },
+  "load_and_uptime": {
+    "uptime_human": "17 days, 22:40",
+    "uptime_seconds_approx": 1550400,
+    "load_average_1m": 0.92,
+    "load_average_5m": 0.74,
+    "load_average_15m": 0.71,
+    "vcpu_normalized_load_15m_pct": 35.5,
+    "vcpu_normalized_load_1m_pct": 46.0,
+    "processes_running_total": "9/1458",
+    "vmstat_3s_sample": [
+      {
+        "sample": 1,
+        "note": "boot_average",
+        "r": 17,
+        "b": 0,
+        "si_kbs": 1,
+        "so_kbs": 4,
+        "bi": 51,
+        "bo": 383,
+        "us": 6,
+        "sy": 5,
+        "id": 84,
+        "wa": 0,
+        "st": 4
+      },
+      {
+        "sample": 2,
+        "note": "live_1s",
+        "r": 2,
+        "b": 0,
+        "si_kbs": 0,
+        "so_kbs": 0,
+        "bi": 244,
+        "bo": 1192,
+        "us": 40,
+        "sy": 30,
+        "id": 25,
+        "wa": 0,
+        "st": 5
+      },
+      {
+        "sample": 3,
+        "note": "live_1s",
+        "r": 2,
+        "b": 0,
+        "si_kbs": 0,
+        "so_kbs": 700,
+        "bi": 0,
+        "bo": 1656,
+        "us": 20,
+        "sy": 23,
+        "id": 49,
+        "wa": 0,
+        "st": 8
+      }
+    ]
+  },
+  "existing_workloads": {
+    "top_aggregated_rss_by_comm_kib": [
+      {
+        "comm": "mysqld",
+        "procs": 3,
+        "rss_kib": 1249828,
+        "rss_mib": 1220.54,
+        "note": "1 host Percona 8.4 (1002.8 MiB) + 2 Docker MySQL 8.0 (tenant-erp-db, tenant-iot-db)"
+      },
+      {
+        "comm": "php-fpm8.3",
+        "procs": 11,
+        "rss_kib": 920956,
+        "rss_mib": 899.37,
+        "note": "Shared COW pages across 11 workers; true cgroup MemoryCurrent = 213.50 MiB, Peak = 567.54 MiB"
+      },
+      {
+        "comm": "python3",
+        "procs": 3,
+        "rss_kib": 723560,
+        "rss_mib": 706.6,
+        "note": "Primarily open-webui container (637.9 MiB)"
+      },
+      {
+        "comm": "php8.3",
+        "procs": 4,
+        "rss_kib": 459060,
+        "rss_mib": 448.3,
+        "note": "Supervisor workers: 2x tenant-commerce-queue-worker, 1x telegram-worker, 1x tenant-commerce-reverb"
+      },
+      {
+        "comm": "apache2",
+        "procs": 29,
+        "rss_kib": 418280,
+        "rss_mib": 408.48,
+        "note": "Inside Docker PHP/phpMyAdmin/Laravel containers (COW shared)"
+      },
+      {
+        "comm": "node",
+        "procs": 8,
+        "rss_kib": 371220,
+        "rss_mib": 362.52,
+        "note": "CloudPanel agent + Docker Node apps (tenant-events, tenant-signage, uptime-kuma)"
+      },
+      {
+        "comm": "postgres",
+        "procs": 34,
+        "rss_kib": 347284,
+        "rss_mib": 339.14,
+        "note": "4 Docker PostgreSQL instances (tenant-vms, tenant-ops, tenant-events, tenant-signage; COW shared)"
+      },
+      {
+        "comm": "containerd-shim",
+        "procs": 34,
+        "rss_kib": 310776,
+        "rss_mib": 303.49
+      },
+      {
+        "comm": "nginx",
+        "procs": 18,
+        "rss_kib": 236600,
+        "rss_mib": 231.05,
+        "note": "Host nginx.service + clp-nginx.service + Docker nginx:alpine containers"
+      },
+      {
+        "comm": "next-server",
+        "procs": 1,
+        "rss_kib": 193668,
+        "rss_mib": 189.13,
+        "note": "work.<EXISTING_TENANT_DOMAIN> via PM2 on 127.0.0.1:20128"
+      },
+      {
+        "comm": "uvicorn",
+        "procs": 2,
+        "rss_kib": 190184,
+        "rss_mib": 185.73,
+        "note": "tenant-gateway container + tenant-vps-admin host agent"
+      },
+      {
+        "comm": "fail2ban-server",
+        "procs": 1,
+        "rss_kib": 148532,
+        "rss_mib": 145.05
+      },
+      {
+        "comm": "grafana",
+        "procs": 1,
+        "rss_kib": 130304,
+        "rss_mib": 127.25
+      },
+      {
+        "comm": "php-fpm",
+        "procs": 8,
+        "rss_kib": 103556,
+        "rss_mib": 101.13
+      },
+      {
+        "comm": "loki",
+        "procs": 1,
+        "rss_kib": 101804,
+        "rss_mib": 99.42
+      },
+      {
+        "comm": "docker-proxy",
+        "procs": 33,
+        "rss_kib": 101144,
+        "rss_mib": 98.77
+      }
+    ],
+    "systemd_running_services_count": 41,
+    "key_systemd_cgroup_memory": [
+      {
+        "service": "mysql.service",
+        "current_mib": 1157.68,
+        "peak_mib": 1591.71,
+        "tasks": 61,
+        "restarts": 0
+      },
+      {
+        "service": "cron.service",
+        "current_mib": 343.55,
+        "peak_mib": 1418.43,
+        "tasks": 1,
+        "restarts": 0
+      },
+      {
+        "service": "supervisor.service",
+        "current_mib": 335.29,
+        "peak_mib": 453.36,
+        "tasks": 5,
+        "restarts": 0
+      },
+      {
+        "service": "monarx-agent.service",
+        "current_mib": 285.7,
+        "peak_mib": 1023.44,
+        "tasks": 10,
+        "restarts": 0
+      },
+      {
+        "service": "containerd.service",
+        "current_mib": 271.55,
+        "peak_mib": 287.13,
+        "tasks": 423,
+        "restarts": 0
+      },
+      {
+        "service": "pm2-tenant-commerce-work.service",
+        "current_mib": 265.62,
+        "peak_mib": 441.06,
+        "tasks": 40,
+        "restarts": 0
+      },
+      {
+        "service": "php8.3-fpm.service",
+        "current_mib": 213.5,
+        "peak_mib": 567.54,
+        "tasks": 11,
+        "restarts": 0
+      },
+      {
+        "service": "docker.service",
+        "current_mib": 185.62,
+        "peak_mib": 1484.6,
+        "tasks": 290,
+        "restarts": 0
+      },
+      {
+        "service": "nginx.service",
+        "current_mib": 177.48,
+        "peak_mib": 302.78,
+        "tasks": 5,
+        "restarts": 0
+      },
+      {
+        "service": "systemd-journald.service",
+        "current_mib": 165.77,
+        "peak_mib": 356.43,
+        "tasks": 1,
+        "restarts": 0
+      },
+      {
+        "service": "qemu-guest-agent.service",
+        "current_mib": 115.73,
+        "peak_mib": 1028.57,
+        "tasks": 2,
+        "restarts": 0
+      },
+      {
+        "service": "crowdsec.service",
+        "current_mib": 103.41,
+        "peak_mib": 263.34,
+        "tasks": 11,
+        "restarts": 0
+      },
+      {
+        "service": "vps-guardian-mas.service",
+        "current_mib": 40.03,
+        "peak_mib": 60.77,
+        "tasks": 1,
+        "restarts": 0,
+        "memory_high_mib": 192,
+        "memory_max_mib": 256
+      },
+      {
+        "service": "clp-php-fpm.service",
+        "current_mib": 40.12,
+        "peak_mib": 58.88,
+        "tasks": 1,
+        "restarts": 0
+      },
+      {
+        "service": "tailscaled.service",
+        "current_mib": 39.25,
+        "peak_mib": 46.47,
+        "tasks": 11,
+        "restarts": 0
+      },
+      {
+        "service": "php8.5-fpm.service",
+        "current_mib": 26.66,
+        "peak_mib": 50.59,
+        "tasks": 1,
+        "restarts": 0
+      },
+      {
+        "service": "tenant-vps-admin.service",
+        "current_mib": 25.3,
+        "peak_mib": 161.53,
+        "tasks": 2,
+        "restarts": 0
+      },
+      {
+        "service": "fail2ban.service",
+        "current_mib": 25.23,
+        "peak_mib": 82.28,
+        "tasks": 17,
+        "restarts": 0
+      },
+      {
+        "service": "redis-server.service",
+        "current_mib": 7.82,
+        "peak_mib": 123.94,
+        "tasks": 5,
+        "restarts": 0
+      }
+    ],
+    "supervisor_programs": [
+      {
+        "name": "tenant-commerce-queue-worker:tenant-commerce-queue-worker_00",
+        "status": "RUNNING",
+        "user": "www-data"
+      },
+      {
+        "name": "tenant-commerce-queue-worker:tenant-commerce-queue-worker_01",
+        "status": "RUNNING",
+        "user": "www-data"
+      },
+      {
+        "name": "tenant-commerce-reverb",
+        "status": "RUNNING",
+        "user": "www-data"
+      },
+      {
+        "name": "tenant-commerce-telegram-worker",
+        "status": "RUNNING",
+        "user": "www-data"
+      }
+    ],
+    "cron_summary": {
+      "root_crontab": [
+        "0 4 * * * bash /root/remote_prune.sh"
+      ],
+      "etc_cron_d_files": [
+        "certbot",
+        "clp",
+        "docker-builder-prune",
+        "e2scrub_all",
+        "tenant-iot",
+        "tenant-agent-cleanup",
+        "tenant-watchdog",
+        "monarx-update",
+        "php",
+        "sysstat",
+        "tenant-router-backup",
+        "tenant-router-export"
+      ]
+    }
+  },
+  "docker_environment": {
+    "installed": true,
+    "docker_binary": "/usr/bin/docker",
+    "engine_version": "29.1.3",
+    "api_version": "1.52",
+    "compose_version": "2.40.3+ds1-0ubuntu1~24.04.1",
+    "standalone_docker_compose": false,
+    "cgroup_driver": "systemd",
+    "cgroup_version": "2",
+    "storage_driver": "overlay2",
+    "root_dir": "/var/lib/docker",
+    "live_restore": true,
+    "logging_driver": "json-file",
+    "containers_total": 34,
+    "containers_running": 34,
+    "total_container_live_ram_mib": 2066.08,
+    "networks": [
+      {
+        "name": "bridge",
+        "driver": "bridge",
+        "subnet": "172.17.0.0/16"
+      },
+      {
+        "name": "tenant-signage_default",
+        "driver": "bridge",
+        "subnet": "172.18.0.0/16"
+      },
+      {
+        "name": "tenant-commerce-monitoring_monitoring",
+        "driver": "bridge",
+        "subnet": "172.20.0.0/24"
+      },
+      {
+        "name": "order-tenant-commerce_default",
+        "driver": "bridge",
+        "subnet": "172.20.1.0/24"
+      },
+      {
+        "name": "tenant-events-network",
+        "driver": "bridge",
+        "subnet": "172.20.2.0/24"
+      },
+      {
+        "name": "tenant-ops_default",
+        "driver": "bridge",
+        "subnet": "172.20.3.0/24"
+      },
+      {
+        "name": "tenant-iot_network",
+        "driver": "bridge",
+        "subnet": "172.20.4.0/24"
+      },
+      {
+        "name": "tenant-erp_tenant-erp-network",
+        "driver": "bridge",
+        "subnet": "172.20.5.0/24"
+      },
+      {
+        "name": "tenant-portal_default",
+        "driver": "bridge",
+        "subnet": "172.20.6.0/24"
+      },
+      {
+        "name": "tenant-vms_app-network",
+        "driver": "bridge",
+        "subnet": "172.20.7.0/24"
+      },
+      {
+        "name": "open-webui-app_tenant-internal",
+        "driver": "bridge",
+        "subnet": "172.20.8.0/24"
+      },
+      {
+        "name": "host",
+        "driver": "host",
+        "subnet": null
+      },
+      {
+        "name": "none",
+        "driver": "null",
+        "subnet": null
+      }
+    ],
+    "volumes_count": 12
+  },
+  "network_ports_proxy_tls_firewall": {
+    "reverse_proxy": {
+      "server": "nginx/1.30.2",
+      "http3_quic_enabled": true,
+      "reuseport_owner": "/etc/nginx/sites-enabled/default.conf (listen 443 quic reuseport default_server)",
+      "cloudpanel_admin_nginx": "clp-nginx.service on 8443/tcp",
+      "sites_enabled_files": [
+        "default.conf",
+        "<EXISTING_TENANT_VHOST_01..14>.conf"
+      ],
+      "letsencrypt_live_dirs": [
+        "<EXISTING_TENANT_TLS_CERT_01..05>"
+      ],
+      "sites_enabled_count": 15,
+      "letsencrypt_live_count": 5
+    },
+    "occupied_tcp_ports": {
+      "public_or_wildcard": [
+        22,
+        25,
+        80,
+        443,
+        3002,
+        3080,
+        3306,
+        3307,
+        3311,
+        3312,
+        5050,
+        5432,
+        6001,
+        6380,
+        8000,
+        8001,
+        8080,
+        8082,
+        8085,
+        8088,
+        8089,
+        8443,
+        8888,
+        9090,
+        9100,
+        9101,
+        9104,
+        9113,
+        9121,
+        33060
+      ],
+      "loopback_127_0_0_1": [
+        53,
+        3000,
+        3001,
+        3100,
+        4040,
+        6060,
+        6379,
+        8083,
+        8086,
+        8090,
+        8098,
+        8100,
+        8101,
+        8102,
+        8180,
+        18000,
+        20000,
+        20001,
+        20128,
+        28341,
+        65529
+      ],
+      "bridge_or_tailscale_specific": [
+        "172.20.8.1:8130",
+        "<TAILSCALE_MESH_IPV4>:48980"
+      ]
+    },
+    "occupied_udp_ports": {
+      "public_or_wildcard": [
+        443,
+        41641
+      ],
+      "loopback_127_0_0_1": [
+        53,
+        323,
+        1721
+      ]
+    },
+    "databases_and_runtimes_on_host": {
+      "mysql": "Percona Server 8.4.8-8 (listening *:3306, *:33060)",
+      "psql_host_cli": "NOT_INSTALLED (Docker tenant-ops-pgsql postgres:15 binds 0.0.0.0:5432)",
+      "redis": "Redis 7.0.15 (listening 127.0.0.1:6379, [::1]:6379)",
+      "sqlite3": "3.45.1",
+      "php_cli": "8.4.27 (plus php8.3-fpm on 127.0.0.1:18000, php8.5-fpm on 127.0.0.1:20000-20001, clp-php-fpm 8.1)",
+      "node_host_global": "NOT_INSTALLED in /usr/bin (PM2 runs user-scoped Node for work.<EXISTING_TENANT_DOMAIN>)",
+      "python3": "Python 3.12.3",
+      "git": "2.43.0"
+    },
+    "firewall": {
+      "ufw_active": true,
+      "default_policies": {
+        "incoming": "deny",
+        "outgoing": "allow",
+        "routed": "allow"
+      },
+      "public_allowed_ports": [
+        "21/tcp",
+        "22/tcp",
+        "80/tcp",
+        "443/tcp",
+        "443/udp",
+        "4443/tcp",
+        "5050/tcp",
+        "8080/tcp",
+        "8082/tcp",
+        "8443/tcp"
+      ],
+      "subnet_restricted_ports": [
+        {
+          "port": "3311",
+          "from": "172.16.0.0/12",
+          "purpose": "tenant-tunnel-mrp"
+        },
+        {
+          "port": "3312",
+          "from": "172.16.0.0/12",
+          "purpose": "tenant-tunnel-hris"
+        },
+        {
+          "port": "8130/tcp",
+          "from": "172.20.8.0/24",
+          "purpose": "tenant-vps-admin"
+        }
+      ],
+      "docker_user_chain_hardened": true,
+      "docker_user_policy": "Drops all NEW inbound connections on eth0 to Docker-forwarded container ports (host-docker-user)",
+      "intrusion_prevention": [
+        "crowdsec + crowdsec-firewall-bouncer",
+        "fail2ban",
+        "monarx-agent"
+      ]
+    }
+  },
+  "allinagent_engineering_budget": {
+    "deployment_directory": "/opt/allinagent",
+    "deployment_directory_current_state": "DOES_NOT_EXIST (clean greenfield path on /dev/sda1)",
+    "memory_budget_mib": {
+      "host_total_ram_mib": 7941,
+      "host_current_used_mib": 4534,
+      "host_current_available_mib": 3407,
+      "reserved_host_and_existing_apps_buffer_mib": 1871,
+      "allinagent_idle_target_mib": {
+        "min": 350,
+        "max": 768
+      },
+      "allinagent_active_sustained_max_mib": 1280,
+      "allinagent_hard_cgroup_ceiling_mib": 1536,
+      "recommended_container_limits_mib": {
+        "web_frontend": 384,
+        "api_agent_core": 640,
+        "postgres_db_if_used": 256,
+        "redis_cache_if_used": 128,
+        "worker_or_bridge_sidecar": 128,
+        "total_sum": 1536
+      },
+      "build_constraint": "NEVER run unconstrained `next build` / `tsc` on VPS; either build images off-host (CI / <WINDOWS_BASELINE_HOST>) and push/load image tarball, or enforce `--memory=1280m --cpus=1.0` and `NODE_OPTIONS=--max-old-space-size=1024`.",
+      "compose_production_container_limits_mib": {
+        "postgres": 224,
+        "paperclip": 416,
+        "hermes": 384,
+        "office-bridge": 160,
+        "office": 224,
+        "always_on_subtotal": 1408,
+        "vulnclaw_on_demand": 128,
+        "total_stack_ceiling_mib": 1536
+      }
+    },
+    "cpu_budget_vcpu": {
+      "host_total_vcpus": 2.0,
+      "existing_baseline_avg_vcpus": 0.8,
+      "allinagent_idle_vcpus": 0.05,
+      "allinagent_active_sustained_vcpus": 0.75,
+      "per_container_cpus_cap": {
+        "api_agent_core": "1.00",
+        "web_frontend": "0.75",
+        "postgres_db": "0.50",
+        "redis_cache": "0.25",
+        "worker_sidecar": "0.50"
+      }
+    },
+    "disk_budget_gib": {
+      "host_available_gib": 47.84,
+      "mandatory_host_free_floor_gib": 24.0,
+      "existing_apps_growth_reserve_gib": 11.84,
+      "allinagent_max_total_gib": 12.0,
+      "allinagent_target_steady_gib": 5.0,
+      "breakdown_max_gib": {
+        "docker_images": 3.5,
+        "app_code_and_bind_data": 5.0,
+        "db_and_cache_volumes": 2.5,
+        "rotated_logs": 0.5,
+        "rollback_snapshots": 0.5
+      },
+      "prune_protection_strategy": "Bind-mount persistent data under /opt/allinagent/data and keep containers running with `restart: unless-stopped` so root's 04:00 UTC `/root/remote_prune.sh` and `/etc/cron.d/docker-builder-prune` never delete ALLINAGENT images or data."
+    },
+    "port_allocation": {
+      "safe_loopback_range": "127.0.0.1:8200-8219",
+      "public_bind_allowed": false,
+      "recommended_assignments": {
+        "web_frontend": "127.0.0.1:8200",
+        "api_or_gateway": "127.0.0.1:8201",
+        "websocket_or_bridge_optional": "127.0.0.1:8202",
+        "internal_db_and_redis": "NONE (internal Docker network only; note 0.0.0.0:5432, 0.0.0.0:3306, and 127.0.0.1:6379 are ALREADY occupied on host!)"
+      }
+    },
+    "network_isolation": {
+      "edge_network": {
+        "name": "allinagent_edge",
+        "driver": "bridge",
+        "internal": false,
+        "recommended_subnet": "192.168.240.0/24",
+        "subnet_rationale": "Avoids collision with existing Docker subnets 172.17.0.0/16, 172.18.0.0/16, 172.20.0.0/24-172.20.8.0/24, and avoids matching UFW's 172.16.0.0/12 allow rules for HRIS/MRP DB tunnels (ports 3311/3312) unless explicitly required."
+      },
+      "data_network": {
+        "name": "allinagent_data",
+        "driver": "bridge",
+        "internal": true,
+        "recommended_subnet": "192.168.241.0/24",
+        "subnet_rationale": "Air-gapped internal bridge (`internal: true`) for DB/Redis/internal state; zero inbound host ports and zero outbound internet egress."
+      },
+      "reverse_proxy_integration": "Dedicated vhost `/etc/nginx/sites-available/allinagent.conf` symlinked into `/etc/nginx/sites-enabled/`, proxying TLS 443 (`ssl` + `quic` WITHOUT `reuseport`, since `default.conf` already owns `reuseport`) to `127.0.0.1:8200` / `127.0.0.1:8201` with WebSocket upgrade headers."
+    },
+    "wave1_warm_agent_profiles": [
+      "ceo",
+      "backend",
+      "qa",
+      "security-reviewer"
+    ]
+  }
+}

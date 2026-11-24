@@ -1,0 +1,42 @@
+{
+  "index": 7,
+  "agent_dir": "security-lead",
+  "role_slug": "security_lead",
+  "profile_id": "pcsecuritylead",
+  "name": "Security Lead",
+  "handle": "@security_lead",
+  "role": "security",
+  "title": "Defensive Security Architecture Lead",
+  "department": "Cybersecurity",
+  "reports_to_slug": "ceo_agent",
+  "wave": 2,
+  "default_activation": "STANDBY",
+  "budget_monthly_cents": 1500,
+  "timeout_sec": 180,
+  "max_turns": 15,
+  "toolsets": [
+    "file",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "skills"
+  ],
+  "toolsets_csv": "file,skills",
+  "hermes_home": "/data/hermes/profiles/pcsecuritylead",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/security-lead/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/security-lead/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+  "skills": {
+    "primary": [
+      "ciso-advisor"
+    ],
+    "specialist": [],
+    "on_demand": [],
+    "reference_only": [
+      "threat-model"
+    ],
+    "experimental": [],
+    "disabled_bundled": []
+  }
+}

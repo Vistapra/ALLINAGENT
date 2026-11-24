@@ -1,0 +1,50 @@
+{
+  "index": 6,
+  "agent_dir": "qa",
+  "role_slug": "qa_engineer",
+  "profile_id": "pcqaengineer",
+  "name": "QA Engineer",
+  "handle": "@qa",
+  "role": "qa",
+  "title": "Lead Quality Assurance & Regression Engineer",
+  "department": "Quality Assurance",
+  "reports_to_slug": "ceo_agent",
+  "wave": 1,
+  "default_activation": "ACTIVE",
+  "budget_monthly_cents": 2000,
+  "timeout_sec": 240,
+  "max_turns": 20,
+  "toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "toolsets_csv": "file,terminal,skills",
+  "hermes_home": "/data/hermes/profiles/pcqaengineer",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/qa/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/qa/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+  "skills": {
+    "primary": [
+      "pw"
+    ],
+    "specialist": [
+      "pw-generate",
+      "pw-review",
+      "senior-qa"
+    ],
+    "on_demand": [
+      "pw-fix",
+      "pw-coverage",
+      "pw-report"
+    ],
+    "reference_only": [],
+    "experimental": [],
+    "disabled_bundled": []
+  }
+}

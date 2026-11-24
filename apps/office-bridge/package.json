@@ -1,0 +1,17 @@
+{
+  "name": "@allinagent/office-bridge",
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "ALLINAGENT Office Bridge — Unified Real-Time Control Plane for 3D/2D Office, Paperclip, Hermes, VulnClaw, and Telegram",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

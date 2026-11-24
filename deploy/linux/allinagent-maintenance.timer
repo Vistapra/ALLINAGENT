@@ -1,0 +1,19 @@
+# ==============================================================================
+# ALLINAGENT — Daily 03:00 Maintenance Timer (`allinagent-maintenance.timer`)
+# `install-systemd.sh` substitutes `UTC` with `TIMEZONE` from `/opt/allinagent/.env`.
+# `Persistent=true` ensures missed windows during downtime catch up cleanly.
+# ==============================================================================
+
+[Unit]
+Description=ALLINAGENT Daily 03:00 Coordinated Maintenance & Safe Update Timer
+Documentation=https://github.com/allinagent/allinagent
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 UTC
+Persistent=true
+RandomizedDelaySec=120
+AccuracySec=1m
+Unit=allinagent-maintenance.service
+
+[Install]
+WantedBy=timers.target

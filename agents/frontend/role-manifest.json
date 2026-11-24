@@ -1,0 +1,44 @@
+{
+  "index": 4,
+  "agent_dir": "frontend",
+  "role_slug": "frontend_developer",
+  "profile_id": "pcfrontenddeveloper",
+  "name": "Frontend Developer",
+  "handle": "@frontend",
+  "role": "designer",
+  "title": "Senior Frontend & UI Engineer",
+  "department": "Frontend & UI",
+  "reports_to_slug": "cto_agent",
+  "wave": 2,
+  "default_activation": "STANDBY",
+  "budget_monthly_cents": 1500,
+  "timeout_sec": 240,
+  "max_turns": 20,
+  "toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "toolsets_csv": "file,terminal,skills",
+  "hermes_home": "/data/hermes/profiles/pcfrontenddeveloper",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/frontend/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/frontend/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+  "skills": {
+    "primary": [
+      "react-best-practices"
+    ],
+    "specialist": [
+      "frontend-design"
+    ],
+    "on_demand": [],
+    "reference_only": [],
+    "experimental": [],
+    "disabled_bundled": []
+  }
+}

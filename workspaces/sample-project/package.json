@@ -1,0 +1,14 @@
+{
+  "name": "@allinagent/order-billing-demo",
+  "version": "1.0.0",
+  "description": "Synthetic MIT-licensed polyglot order & billing microservice fixture for ALLINAGENT.",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node --test tests/ui_contract.test.mjs"
+  }
+}

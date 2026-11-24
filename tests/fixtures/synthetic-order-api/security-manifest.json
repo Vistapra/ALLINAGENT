@@ -1,0 +1,68 @@
+{
+  "fixture_id": "acmebistro-synthetic-order-api",
+  "version": "1.0.0",
+  "license": "MIT",
+  "privacy_classification": "PUBLIC_SYNTHETIC_FIXTURE",
+  "external_network_calls": false,
+  "payment_simulator": "AcmePay Offline Sandbox Simulator",
+  "group_e_dimensions": [
+    "1_laravel_php_rest_api_endpoints",
+    "2_authentication_and_order_ownership",
+    "3_acmepay_synthetic_payment_workflow",
+    "4_composer_json_and_lock_manifests",
+    "5_dual_php_and_python_automated_tests",
+    "6_sqlite_migrations_with_idempotency_ttl",
+    "7_seeded_vulnerabilities_vs_patched_clean_mode",
+    "8_openapi_contract_and_compliance_reporting_metadata"
+  ],
+  "seeded_findings": [
+    {
+      "id": "SYN-F01",
+      "title": "Client-Supplied Payment Amount Trust",
+      "severity": "CRITICAL",
+      "cvss_v3_score": 9.1,
+      "cwe": "CWE-840",
+      "owasp_api_2023": "API8:2023 / Business Logic Integrity",
+      "component": "src/Controllers/PaymentController.php",
+      "endpoint": "POST /api/v1/orders/{id}/pay",
+      "seeded_behavior": "Trusts client-supplied amount_cents in JSON body when initiating AcmePay checkout session instead of enforcing server-computed order_items sum.",
+      "patched_behavior": "Computes authoritative payable total strictly from order_items + tax_cents - discount_cents and rejects mismatched client amount_cents with HTTP 422 AMOUNT_MISMATCH."
+    },
+    {
+      "id": "SYN-F02",
+      "title": "Missing Order Ownership Verification (IDOR / BOLA)",
+      "severity": "HIGH",
+      "cvss_v3_score": 8.2,
+      "cwe": "CWE-639",
+      "owasp_api_2023": "API1:2023 Broken Object Level Authorization",
+      "component": "src/Middleware/OrderOwnershipMiddleware.php",
+      "endpoint": "GET /api/v1/orders/{id}/status, POST /api/v1/orders/{id}/pay",
+      "seeded_behavior": "Verifies only presence of X-User-Id or X-Guest-Token header without checking that the caller owns the target order ID.",
+      "patched_behavior": "Enforces strict ownership matching X-User-Id === order.user_id for customer orders and constant-time SHA-256 hash comparison of X-Guest-Token for guest orders, returning HTTP 403 ORDER_OWNERSHIP_VIOLATION on mismatch."
+    },
+    {
+      "id": "SYN-F03",
+      "title": "Unvalidated callback_url Open Redirect",
+      "severity": "MEDIUM",
+      "cvss_v3_score": 6.5,
+      "cwe": "CWE-601",
+      "owasp_api_2023": "API8:2023 Security Misconfiguration",
+      "component": "src/Services/PaymentGatewayService.php",
+      "endpoint": "POST /api/v1/orders/{id}/pay",
+      "seeded_behavior": "Embeds unvalidated client callback_url directly into the AcmePay checkout redirect target, permitting off-domain phishing or javascript: URIs.",
+      "patched_behavior": "Validates callback_url strictly for https:// scheme, absence of userinfo/backslash tricks, and exact hostname match against config allowed_callback_hosts, returning HTTP 422 INVALID_CALLBACK_URL otherwise."
+    },
+    {
+      "id": "SYN-F04",
+      "title": "Missing Idempotency Key Expiration Cleanup",
+      "severity": "MEDIUM",
+      "cvss_v3_score": 5.9,
+      "cwe": "CWE-672",
+      "owasp_api_2023": "API4:2023 Unrestricted Resource Consumption / Stale State Replay",
+      "component": "src/Middleware/IdempotencyGuard.php",
+      "endpoint": "POST /api/v1/orders/{id}/pay",
+      "seeded_behavior": "Reads checkout_idempotency_keys without purging expired expires_at rows, replaying stale expired checkout responses and allowing unbounded table growth.",
+      "patched_behavior": "Purges expired checkout_idempotency_keys rows (expires_at <= now) prior to lookup, enforces SHA-256 request payload binding (HTTP 409 on mismatch), and sets deterministic expires_at TTL on newly cached responses."
+    }
+  ]
+}

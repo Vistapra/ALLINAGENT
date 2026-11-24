@@ -1,0 +1,221 @@
+# ==============================================================================
+# ALLINAGENT — Continuous Integration, Security Gate, SBOM & Docker Smoke CI
+# Root permissions strictly locked to `contents: read` (least privilege).
+# All third-party GitHub Actions pinned to immutable 40-char commit SHAs.
+# ==============================================================================
+
+name: ALLINAGENT CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene-and-sbom-gate:
+    name: Secret Hygiene, Manifest & Deterministic CycloneDX SBOM Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Install YAML validator
+        run: python3 -m pip install --disable-pip-version-check --no-cache-dir pyyaml
+
+      - name: Validate Compose & Workflow YAML schemas
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          targets = [
+              Path("compose.yaml"),
+              Path("compose.production.yaml"),
+              *sorted(Path(".github/workflows").glob("*.yml")),
+          ]
+          for path in targets:
+              data = yaml.safe_load(path.read_text(encoding="utf-8"))
+              assert isinstance(data, dict), f"Invalid YAML root in {path}"
+              print(f"Validated YAML: {path}")
+          PY
+
+      - name: Run public release secret & clean-tree audit
+        run: python3 scripts/audit-public-release.py --strict-clean-tree
+
+      - name: Generate and validate deterministic CycloneDX SBOM
+        run: |
+          python3 scripts/generate-sbom.py --validate --output sbom.cdx.json
+          test -s sbom.cdx.json
+
+      - name: Upload CycloneDX SBOM artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: allinagent-cyclonedx-sbom
+          path: sbom.cdx.json
+          retention-days: 30
+
+  python-and-skills-gate:
+    name: Python Syntax, Skill Manifest & CI Regression Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Python test dependencies
+        run: python3 -m pip install --disable-pip-version-check --no-cache-dir pytest pyyaml
+
+      - name: Compile all Python modules (`py_compile`)
+        run: |
+          python3 -m py_compile scripts/allinagent_cli.py
+          for dir in scripts apps components integrations skills tests; do
+            if [ -d "${dir}" ]; then
+              python3 -m compileall -q "${dir}"
+            fi
+          done
+
+      - name: Verify CLI `--help`, `version`, and `setup --config-only` (`0600`)
+        run: |
+          chmod +x ./allinagent
+          ./allinagent --help >/dev/null
+          ./allinagent version --json
+          TMP_DIR="$(mktemp -d)"
+          ./allinagent --env-file "${TMP_DIR}/.env" setup --production --yes --config-only --data-dir "${TMP_DIR}/data"
+          test -f "${TMP_DIR}/.env"
+          PERM="$(stat -c '%a' "${TMP_DIR}/.env")"
+          test "${PERM}" = "600"
+          rm -rf "${TMP_DIR}"
+
+      - name: Verify portable agent skill manifest
+        run: python3 skills/install_agent_skills.py --verify-manifest
+
+      - name: Run Python CI test suite
+        run: python3 tests/run_ci_suite.py
+
+  node-and-typescript-tests:
+    name: Node 24 & TypeScript Verification (`office-bridge`, `hermes3d`)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: "24"
+
+      - name: Ensure `pnpm` is installed
+        run: |
+          if ! command -v pnpm >/dev/null 2>&1; then
+            npm install -g pnpm@10
+          fi
+          pnpm --version
+
+      - name: Verify `apps/office-bridge`
+        working-directory: apps/office-bridge
+        run: npm ci && node --test tests/*.test.js
+
+      - name: Verify `apps/hermes3d` TypeScript & Vitest suite
+        working-directory: apps/hermes3d
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          NODE_OPTIONS: "--max-old-space-size=2048"
+        run: |
+          node --check server/index.js
+          node --check server/access-gate.js
+          node --check next.config.mjs
+          pnpm install --frozen-lockfile=false && pnpm exec tsc --noEmit && pnpm exec vitest run
+
+  docker-smoke-test:
+    name: Multi-Stage Docker Build & Live Container Smoke Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    needs:
+      - hygiene-and-sbom-gate
+      - python-and-skills-gate
+      - node-and-typescript-tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
+
+      - name: Initialize isolated `.env` & CSPRNG secrets (`0600`)
+        run: |
+          chmod +x ./allinagent
+          ./allinagent --production setup --yes --config-only
+
+      - name: Build production images (`vulnclaw`, `office-bridge`, `office`, `paperclip`, `hermes`)
+        run: |
+          for svc in vulnclaw office-bridge office paperclip hermes; do
+            echo "=== Building allinagent-${svc}:latest ==="
+            docker buildx build \
+              --load \
+              --file "deploy/docker/${svc}.Dockerfile" \
+              --tag "ghcr.io/vistapra/allinagent-${svc}:latest" \
+              .
+          done
+
+      - name: Start production stack & verify live health + loopback isolation
+        run: |
+          ./allinagent --production up
+          HEALTHY="0"
+          for attempt in $(seq 1 36); do
+            if ./allinagent --production health --json > /tmp/health.json; then
+              cat /tmp/health.json
+              HEALTHY="1"
+              break
+            fi
+            sleep 5
+          done
+          test "${HEALTHY}" = "1"
+          curl -fsS http://127.0.0.1:8200/api/health
+          curl -fsS http://127.0.0.1:8201/api/health
+          curl -fsS http://127.0.0.1:8202/health
+          python3 - <<'PY'
+          import json
+          import subprocess
+
+          for internal_svc in ("allinagent-postgres", "allinagent-hermes", "allinagent-vulnclaw"):
+              out = subprocess.check_output(
+                  ["docker", "inspect", "--format", "{{json .NetworkSettings.Ports}}", internal_svc],
+                  text=True,
+              ).strip()
+              ports = json.loads(out) if out else {}
+              published = {k: v for k, v in (ports or {}).items() if v}
+              if published:
+                  raise SystemExit(f"Internal container {internal_svc} exposed host ports: {published}")
+          print("Verified zero host port bindings on internal services.")
+          PY
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: ./allinagent --production logs --tail 150
+
+      - name: Tear down stack cleanly
+        if: always()
+        run: ./allinagent --production down

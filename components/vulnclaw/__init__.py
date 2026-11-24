@@ -1,0 +1,17 @@
+"""ALLINAGENT Phase 10 — VulnClaw Lightweight On-Demand Defensive Sandbox."""
+
+from __future__ import annotations
+
+VULNCLAW_UPSTREAM_REPO = "https://github.com/Netw0rkNoob/VulnClaw.git"
+VULNCLAW_PINNED_COMMIT = "0b34878f84b089b21fcf85ecd445315f14df0672"
+VULNCLAW_PINNED_VERSION = "0.4.1"
+DEFAULT_WORKER_HOST = "127.0.0.1"
+DEFAULT_WORKER_PORT = 8660
+
+__all__ = [
+    "DEFAULT_WORKER_HOST",
+    "DEFAULT_WORKER_PORT",
+    "VULNCLAW_PINNED_COMMIT",
+    "VULNCLAW_PINNED_VERSION",
+    "VULNCLAW_UPSTREAM_REPO",
+]

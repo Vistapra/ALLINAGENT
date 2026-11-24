@@ -1,0 +1,183 @@
+# ==============================================================================
+# ALLINAGENT — 2-vCPU / 8-GB RAM Production Override (`compose.production.yaml`)
+# Usage: `docker compose -f compose.yaml -f compose.production.yaml up -d`
+#
+# Resource Budget Invariants:
+#   - Core 5 always-on `mem_limit` sum : 224 + 416 + 384 + 160 + 224 = 1,408 MiB
+#   - VulnClaw `mem_limit`             : 128 MiB -> Hard Sum = 1,536 MiB (1.50 GiB)
+#   - Zero public ports; loopback-only : 127.0.0.1:8200, 127.0.0.1:8201, 127.0.0.1:8202
+#   - Zero host ports on `postgres`, `hermes` (:8650), and `vulnclaw` (:8660)
+#   - Persistent bind-mounts under `${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}`
+# ==============================================================================
+
+name: allinagent
+
+x-production-resource-budget:
+  target_host_profile: "2 vCPU / 8 GiB RAM Multi-Tenant Linux VPS"
+  core_always_on_limit_mib: 1408
+  vulnclaw_limit_mib: 128
+  steady_concurrent_ceiling_mib: 1536
+  heavy_worker_concurrency: 1
+
+services:
+  postgres:
+    pull_policy: missing
+    restart: unless-stopped
+    mem_reservation: 96m
+    mem_limit: 224m
+    memswap_limit: 224m
+    cpus: 0.35
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/postgres:/var/lib/postgresql/data
+      - ./deploy/docker/postgresql-lowmem.conf:/etc/postgresql/postgresql.conf:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  paperclip:
+    pull_policy: missing
+    restart: unless-stopped
+    mem_reservation: 160m
+    mem_limit: 416m
+    memswap_limit: 416m
+    cpus: 0.65
+    pids_limit: 192
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:${PAPERCLIP_PORT:-8201}:3100"
+    environment:
+      NODE_OPTIONS: "--max-old-space-size=300"
+      MALLOC_ARENA_MAX: "2"
+      ALLINAGENT_WORKSPACE_ROOT: "/var/lib/allinagent/workspaces"
+      ALLINAGENT_REPORTS_ROOT: "/var/lib/allinagent/reports"
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/paperclip:/var/lib/allinagent/paperclip
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/reports:/var/lib/allinagent/reports
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/secrets:/var/lib/allinagent/secrets:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-/opt/allinagent/data/workspaces}:/var/lib/allinagent/workspaces
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  hermes:
+    pull_policy: missing
+    restart: unless-stopped
+    mem_reservation: 128m
+    mem_limit: 384m
+    memswap_limit: 384m
+    cpus: 0.75
+    pids_limit: 192
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      HEAVY_WORKER_CONCURRENCY: "1"
+      PYTHONMALLOC: "malloc"
+      MALLOC_ARENA_MAX: "2"
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/hermes:/var/lib/allinagent/hermes
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/reports:/var/lib/allinagent/reports
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/secrets:/var/lib/allinagent/secrets:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-/opt/allinagent/data/workspaces}:/var/lib/allinagent/workspaces
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  office-bridge:
+    pull_policy: missing
+    restart: unless-stopped
+    mem_reservation: 64m
+    mem_limit: 160m
+    memswap_limit: 160m
+    cpus: 0.35
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:${OFFICE_BRIDGE_PORT:-8202}:3210"
+    environment:
+      NODE_OPTIONS: "--max-old-space-size=112"
+      MALLOC_ARENA_MAX: "2"
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/office-data:/var/lib/allinagent/office-data
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/reports:/var/lib/allinagent/reports
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/secrets:/var/lib/allinagent/secrets:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-/opt/allinagent/data/workspaces}:/var/lib/allinagent/workspaces
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  office:
+    pull_policy: missing
+    restart: unless-stopped
+    mem_reservation: 80m
+    mem_limit: 224m
+    memswap_limit: 224m
+    cpus: 0.40
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:${OFFICE_PORT:-8200}:3200"
+    environment:
+      NODE_OPTIONS: "--max-old-space-size=128"
+      MALLOC_ARENA_MAX: "2"
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/studio-state:/var/lib/allinagent/studio-state
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/office-secrets:/var/lib/allinagent/secrets:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-/opt/allinagent/data/workspaces}:/var/lib/allinagent/workspaces:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  vulnclaw:
+    pull_policy: missing
+    restart: unless-stopped
+    mem_reservation: 64m
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.50
+    pids_limit: 64
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/vulnclaw:/var/lib/vulnclaw
+      - ${ALLINAGENT_WORKSPACES_DIR:-/opt/allinagent/data/workspaces}:/workspaces:ro
+      - ${ALLINAGENT_WORKSPACES_DIR:-/opt/allinagent/data/workspaces}:/var/lib/allinagent/workspaces:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  allinagent_edge:
+    name: allinagent_edge
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 192.168.240.0/24
+  allinagent_data:
+    name: allinagent_data
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 192.168.241.0/24

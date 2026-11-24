@@ -1,0 +1,375 @@
+# ==============================================================================
+# ALLINAGENT — GHCR Multi-Image Release, Attestation & Digest Manifest Pipeline
+# Triggered on `v*` version tags or manual `workflow_dispatch`.
+# Root permissions strictly `contents: read`; release jobs elevate minimally.
+# Zero `${{ ... }}` interpolation inside `run:` shell blocks (env-only).
+# ==============================================================================
+
+name: GHCR Release & Provenance
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: "Release tag to publish (e.g. v1.0.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  release-preflight:
+    name: Release Hygiene, SBOM & Version Metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      git_tag: ${{ steps.meta.outputs.git_tag }}
+      owner_lc: ${{ steps.meta.outputs.owner_lc }}
+      is_prerelease: ${{ steps.meta.outputs.is_prerelease }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate public release hygiene, CLI syntax & SBOM
+        run: |
+          python3 -m pip install --disable-pip-version-check --no-cache-dir pyyaml
+          python3 -m py_compile scripts/allinagent_cli.py
+          python3 scripts/audit-public-release.py --strict-clean-tree
+          python3 scripts/generate-sbom.py --validate --output sbom.cdx.json
+
+      - name: Compute normalized version & GHCR namespace
+        id: meta
+        env:
+          INPUT_VERSION_TAG: ${{ inputs.version_tag }}
+          GIT_REF_NAME: ${{ github.ref_name }}
+          REPO_OWNER: ${{ github.repository_owner }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          raw_input = os.environ.get("INPUT_VERSION_TAG", "").strip()
+          ref_name = os.environ.get("GIT_REF_NAME", "").strip()
+          raw_tag = raw_input or ref_name
+          if not re.fullmatch(r"v?[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9._-]+)?", raw_tag):
+              raise SystemExit(f"Invalid release version tag: {raw_tag!r}")
+
+          git_tag = raw_tag if raw_tag.startswith("v") else f"v{raw_tag}"
+          clean_ver = git_tag[1:]
+          owner_lc = (os.environ.get("REPO_OWNER") or "vistapra").strip().lower()
+          if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", owner_lc):
+              raise SystemExit(f"Invalid repository owner: {owner_lc!r}")
+
+          is_prerelease = "true" if re.search(r"-(alpha|beta|rc)", clean_ver) else "false"
+
+          gh_out = Path(os.environ["GITHUB_OUTPUT"])
+          with gh_out.open("a", encoding="utf-8") as handle:
+              handle.write(f"git_tag={git_tag}\n")
+              handle.write(f"version={clean_ver}\n")
+              handle.write(f"owner_lc={owner_lc}\n")
+              handle.write(f"is_prerelease={is_prerelease}\n")
+          PY
+
+  build-and-push:
+    name: Build & Push `allinagent-${{ matrix.service }}`
+    needs: release-preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    strategy:
+      fail-fast: true
+      matrix:
+        service:
+          - hermes
+          - paperclip
+          - office-bridge
+          - office
+          - vulnclaw
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
+
+      - name: Authenticate to GitHub Container Registry (`ghcr.io`)
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image tags for service
+        id: tags
+        env:
+          IMAGE_OWNER: ${{ needs.release-preflight.outputs.owner_lc }}
+          MATRIX_SERVICE: ${{ matrix.service }}
+          RELEASE_VERSION: ${{ needs.release-preflight.outputs.version }}
+          IS_PRERELEASE: ${{ needs.release-preflight.outputs.is_prerelease }}
+        run: |
+          BASE_IMAGE="ghcr.io/${IMAGE_OWNER}/allinagent-${MATRIX_SERVICE}"
+          TAGS="${BASE_IMAGE}:${RELEASE_VERSION}"
+          if [ "${IS_PRERELEASE}" = "false" ]; then
+            TAGS="${TAGS},${BASE_IMAGE}:latest"
+          fi
+          echo "base_image=${BASE_IMAGE}" >> "${GITHUB_OUTPUT}"
+          echo "tags=${TAGS}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build and push `linux/amd64` container image
+        id: build
+        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
+        with:
+          context: .
+          file: deploy/docker/${{ matrix.service }}.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+          labels: |
+            org.opencontainers.image.title=allinagent-${{ matrix.service }}
+            org.opencontainers.image.version=${{ needs.release-preflight.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/Vistapra/ALLINAGENT
+            org.opencontainers.image.licenses=MIT
+
+      - name: Attest SLSA build provenance
+        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
+        with:
+          subject-name: ${{ steps.tags.outputs.base_image }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Record immutable `@sha256` digest metadata
+        env:
+          MATRIX_SERVICE: ${{ matrix.service }}
+          BASE_IMAGE: ${{ steps.tags.outputs.base_image }}
+          RELEASE_VERSION: ${{ needs.release-preflight.outputs.version }}
+          BUILD_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          mkdir -p digests
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          svc = os.environ["MATRIX_SERVICE"]
+          img = os.environ["BASE_IMAGE"]
+          ver = os.environ["RELEASE_VERSION"]
+          digest = os.environ["BUILD_DIGEST"]
+          assert digest.startswith("sha256:"), f"Expected sha256 digest, got {digest!r}"
+
+          payload = {
+              "service": svc,
+              "image": img,
+              "version": ver,
+              "digest": digest,
+              "immutable_ref": f"{img}:{ver}@{digest}",
+          }
+          Path(f"digests/digest-{svc}.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Upload per-service digest artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: digest-${{ matrix.service }}
+          path: digests/digest-${{ matrix.service }}.json
+          retention-days: 14
+
+  release-smoke-check:
+    name: Container Smoke Verification Against Published GHCR Images
+    needs:
+      - release-preflight
+      - build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Authenticate to GitHub Container Registry (`ghcr.io`)
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull published images & verify live stack health
+        env:
+          ALLINAGENT_IMAGE_NAMESPACE: ${{ needs.release-preflight.outputs.owner_lc }}
+          ALLINAGENT_VERSION: ${{ needs.release-preflight.outputs.version }}
+        run: |
+          chmod +x ./allinagent
+          ./allinagent --production setup --yes --config-only
+          docker compose -f compose.yaml -f compose.production.yaml pull
+          ./allinagent --production up
+          HEALTHY="0"
+          for attempt in $(seq 1 36); do
+            if ./allinagent --production health --json > /tmp/release-health.json; then
+              cat /tmp/release-health.json
+              HEALTHY="1"
+              break
+            fi
+            sleep 5
+          done
+          test "${HEALTHY}" = "1"
+          curl -fsS http://127.0.0.1:8200/api/health
+          curl -fsS http://127.0.0.1:8201/api/health
+          curl -fsS http://127.0.0.1:8202/health
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: ./allinagent --production logs --tail 150
+
+      - name: Tear down smoke stack
+        if: always()
+        run: ./allinagent --production down
+
+  publish-release-manifest:
+    name: Assemble `release-manifest.json`, `sbom.cdx.json`, `SHA256SUMS.txt` & GitHub Release
+    needs:
+      - release-preflight
+      - build-and-push
+      - release-smoke-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: "3.12"
+
+      - name: Download all image digest artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          pattern: digest-*
+          path: collected-digests
+          merge-multiple: true
+
+      - name: Generate `release-manifest.json`, `sbom.cdx.json` & `SHA256SUMS.txt`
+        env:
+          RELEASE_TAG: ${{ needs.release-preflight.outputs.git_tag }}
+          RELEASE_VERSION: ${{ needs.release-preflight.outputs.version }}
+          GIT_COMMIT_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p release-bundle
+          python3 scripts/generate-sbom.py --validate --output release-bundle/sbom.cdx.json
+          test -s release-bundle/sbom.cdx.json
+          python3 - <<'PY'
+          import datetime as dt
+          import json
+          import os
+          from pathlib import Path
+
+          images = {}
+          for f in sorted(Path("collected-digests").glob("digest-*.json")):
+              entry = json.loads(f.read_text(encoding="utf-8"))
+              assert str(entry.get("digest", "")).startswith("sha256:"), f"Missing sha256 digest in {f}"
+              images[entry["service"]] = {
+                  "image": entry["image"],
+                  "version": entry["version"],
+                  "digest": entry["digest"],
+                  "immutable_ref": entry["immutable_ref"],
+              }
+
+          assert len(images) == 5, f"Expected 5 service digests, found {len(images)}"
+          manifest = {
+              "product": "ALLINAGENT",
+              "repository": "Vistapra/ALLINAGENT",
+              "tag": os.environ["RELEASE_TAG"],
+              "version": os.environ["RELEASE_VERSION"],
+              "git_commit": os.environ["GIT_COMMIT_SHA"],
+              "published_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+              "platform": "linux/amd64",
+              "upstream_pins": {
+                  "hermes_agent": "eb49b8920a25ffa7bb2fadf548fe819221ca79d7",
+                  "paperclipai": "2026.1117.0",
+                  "vulnclaw": "0b34878f84b089b21fcf85ecd445315f14df0672",
+              },
+              "images": images,
+          }
+          Path("release-bundle/release-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+          PY
+
+          cp compose.yaml release-bundle/compose.yaml
+          cp compose.production.yaml release-bundle/compose.production.yaml
+          (
+            cd release-bundle
+            sha256sum release-manifest.json sbom.cdx.json compose.yaml compose.production.yaml > SHA256SUMS.txt
+          )
+          cat release-bundle/SHA256SUMS.txt
+
+      - name: Upload release bundle artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: allinagent-release-${{ needs.release-preflight.outputs.version }}
+          path: release-bundle/*
+          retention-days: 90
+
+      - name: Create or update GitHub Release with immutable manifest & SBOM
+        if: startsWith(github.ref, 'refs/tags/') || inputs.version_tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.release-preflight.outputs.git_tag }}
+          IS_PRERELEASE: ${{ needs.release-preflight.outputs.is_prerelease }}
+        run: |
+          set -eu
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release upload "${RELEASE_TAG}" \
+              release-bundle/release-manifest.json \
+              release-bundle/sbom.cdx.json \
+              release-bundle/compose.yaml \
+              release-bundle/compose.production.yaml \
+              release-bundle/SHA256SUMS.txt \
+              --clobber
+          elif [ "${IS_PRERELEASE}" = "true" ]; then
+            gh release create "${RELEASE_TAG}" \
+              release-bundle/release-manifest.json \
+              release-bundle/sbom.cdx.json \
+              release-bundle/compose.yaml \
+              release-bundle/compose.production.yaml \
+              release-bundle/SHA256SUMS.txt \
+              --title "ALLINAGENT ${RELEASE_TAG}" \
+              --generate-notes \
+              --prerelease
+          else
+            gh release create "${RELEASE_TAG}" \
+              release-bundle/release-manifest.json \
+              release-bundle/sbom.cdx.json \
+              release-bundle/compose.yaml \
+              release-bundle/compose.production.yaml \
+              release-bundle/SHA256SUMS.txt \
+              --title "ALLINAGENT ${RELEASE_TAG}" \
+              --generate-notes
+          fi

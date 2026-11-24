@@ -1,0 +1,26 @@
+# ==============================================================================
+# ALLINAGENT — Systemd Production Stack Unit (`allinagent.service`)
+# Supervises the Docker Compose v2 stack (`compose.yaml` + `compose.production.yaml`)
+# ==============================================================================
+
+[Unit]
+Description=ALLINAGENT Autonomous AI Company Stack (Docker Compose v2)
+Documentation=https://github.com/allinagent/allinagent
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/allinagent
+Environment="ALLINAGENT_ROOT=/opt/allinagent"
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/opt/allinagent/allinagent --production up
+ExecReload=/opt/allinagent/allinagent --production up
+ExecStop=/opt/allinagent/allinagent --production stop
+TimeoutStartSec=300
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target

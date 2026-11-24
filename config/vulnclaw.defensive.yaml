@@ -1,0 +1,157 @@
+# ==============================================================================
+# ALLINAGENT — Strictly Defensive VulnClaw v0.4.1 Configuration
+# Validated against `vulnclaw.config.schema.VulnClawConfig` (Pydantic v2).
+#
+# Security Guardrails Enforced:
+# 1. All built-in & third-party MCP servers (`fetch`, `memory`, `chrome-devtools`,
+#    `burp`, `scanmalware`) are explicitly set to `enabled: false`.
+# 2. `safety.enable_python_execute` is `false` (no arbitrary code execution).
+# 3. `subagent.enabled` is `false` and autonomous/plugin/recon loops are capped.
+# 4. Zero API keys or owner/Telegram credentials stored in this file; optional
+#    defensive triage injects `VULNCLAW_LLM_API_KEY` ephemerally in isolation.
+# ==============================================================================
+
+llm:
+  provider: "openai"
+  auth_mode: "static"
+  chatgpt_auto_proxy: false
+  base_url: "https://api.openai.com/v1"
+  model: "gpt-4o-mini"
+  max_tokens: 2048
+  max_context_tokens: 128000
+  temperature: 0.0
+  reasoning_effort: "low"
+
+mcp:
+  servers:
+    fetch:
+      name: "fetch"
+      enabled: false
+      priority: 0
+      description: "Disabled by ALLINAGENT defensive-only static analysis policy"
+      transport:
+        type: "stdio"
+        command: "uvx"
+        args:
+          - "mcp-server-fetch"
+        startup_timeout: 5000
+        tool_timeout: 5000
+    memory:
+      name: "memory"
+      enabled: false
+      priority: 0
+      description: "Disabled by ALLINAGENT defensive-only static analysis policy"
+      transport:
+        type: "stdio"
+        command: "npx"
+        args:
+          - "-y"
+          - "@modelcontextprotocol/server-memory"
+        startup_timeout: 5000
+        tool_timeout: 5000
+    chrome-devtools:
+      name: "chrome-devtools"
+      enabled: false
+      priority: 0
+      description: "Disabled by ALLINAGENT defensive-only static analysis policy"
+      transport:
+        type: "stdio"
+        command: "npx"
+        args:
+          - "-y"
+          - "chrome-devtools-mcp@latest"
+        startup_timeout: 5000
+        tool_timeout: 5000
+    burp:
+      name: "burp"
+      enabled: false
+      priority: 0
+      description: "Disabled by ALLINAGENT defensive-only static analysis policy"
+      transport:
+        type: "sse"
+        url: "http://127.0.0.1:9876"
+        startup_timeout: 5000
+        tool_timeout: 5000
+    scanmalware:
+      name: "scanmalware"
+      enabled: false
+      priority: 2
+      description: "Disabled by ALLINAGENT defensive-only static analysis policy"
+      transport:
+        type: "streamable-http"
+        url: "https://mcp.scanmalware.com/mcp"
+        startup_timeout: 5000
+        tool_timeout: 5000
+
+safety:
+  enable_python_execute: false
+  python_execute_restricted: false
+  python_execute_mode: "trusted-local"
+  python_execute_max_lines: 1
+  python_execute_show_warning: true
+  python_execute_max_output_chars: 1024
+  python_execute_audit_enabled: true
+  tool_parallel: false
+  tool_max_concurrent: 1
+  permission_mode: "ask"
+  approval_timeout_seconds: 10
+  trusted_commands: []
+
+subagent:
+  enabled: false
+  max_background_groups: 1
+  max_concurrent_leaf_total: 1
+  max_concurrent_leaf_per_group: 1
+  max_leaf_per_group: 1
+  max_waves_per_group: 1
+  max_steps_per_leaf: 1
+  leaf_max_tool_rounds: 1
+  leaf_timeout_seconds: 30.0
+  group_timeout_seconds: 60.0
+  finalization_timeout_seconds: 15.0
+  max_model_tokens_per_solve: 32000
+  max_model_tokens_per_group: 16000
+  merge_max_evidence_per_group: 8
+  result_max_chars: 4000
+
+session:
+  output_dir: "./reports/vulnclaw"
+  auto_save: false
+  report_format: "markdown"
+  poc_language: "python"
+  max_rounds: 1
+  engine: "solve"
+  solve_max_steps: 1
+  solve_max_tool_rounds: 1
+  solve_max_parallel: 1
+  solve_auto_report: false
+  solve_report_show: false
+  show_thinking: false
+  repl_parallel_enabled: false
+  repl_parallel_agents: 1
+  repl_parallel_depth: 1
+  repl_parallel_worker_rounds: 1
+  repl_parallel_surface_limit: 1
+  persistent_rounds_per_cycle: 1
+  persistent_max_cycles: 1
+  persistent_auto_report: false
+  plugin_runtime_enabled: false
+  plugin_default_timeout: 5
+  plugin_max_requests_per_target: 0
+  tui_scope_only_host: "127.0.0.1"
+  tui_scope_block_actions: "exploit,solve,recon,persistent,python_execute,shell_command,scan_network,http_probe_batch,traffic_repeat"
+
+recon:
+  fofa_email: ""
+  fofa_key: ""
+  hunter_key: ""
+  quake_key: ""
+  zoomeye_key: ""
+  shodan_key: ""
+  zerozone_key: ""
+  http_timeout: 5.0
+  max_concurrency: 1
+  space_size: 1
+  dir_wordlist_path: ""
+  dir_max_requests: 0
+  js_max_files: 0

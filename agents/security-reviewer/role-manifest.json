@@ -1,0 +1,44 @@
+{
+  "index": 8,
+  "agent_dir": "security-reviewer",
+  "role_slug": "security_reviewer",
+  "profile_id": "pcsecurityreviewer",
+  "name": "Security Reviewer",
+  "handle": "@security",
+  "role": "security",
+  "title": "Defensive Code & Findings Security Reviewer",
+  "department": "Cybersecurity",
+  "reports_to_slug": "ceo_agent",
+  "wave": 1,
+  "default_activation": "ACTIVE",
+  "budget_monthly_cents": 2000,
+  "timeout_sec": 180,
+  "max_turns": 15,
+  "toolsets": [
+    "file",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "skills"
+  ],
+  "toolsets_csv": "file,skills",
+  "hermes_home": "/data/hermes/profiles/pcsecurityreviewer",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/security-reviewer/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/security-reviewer/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+  "skills": {
+    "primary": [
+      "security-audit"
+    ],
+    "specialist": [
+      "senior-security"
+    ],
+    "on_demand": [],
+    "reference_only": [
+      "secondsky-cybersecurity-ref"
+    ],
+    "experimental": [],
+    "disabled_bundled": []
+  }
+}

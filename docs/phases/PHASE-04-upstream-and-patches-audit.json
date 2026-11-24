@@ -1,0 +1,700 @@
+{
+  "phase": "PHASE-04",
+  "title": "Upstream Source & Custom Patch Preservation Audit (+ PHASE-00 Local Runtime State)",
+  "audit_metadata": {
+    "timestamp_utc": "2026-11-24T08:25:00Z",
+    "host": "<WINDOWS_BASELINE_HOST>",
+    "access_mode": "STRICT_READ_ONLY_GIT_NO_OPTIONAL_LOCKS_AND_SHA256",
+    "trees_inspected": [
+      "<LEGACY_PLATFORM_ROOT>",
+      "<LEGACY_MONOREPO_ROOT>",
+      "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes",
+      "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/npm/node_modules/hermes-agent/runtime/hermes-agent",
+      "<WINDOWS_USER_HOME>/HermesUpdater"
+    ],
+    "mutations_performed": 0,
+    "secrets_inspected": 0,
+    "overall_verdict": "PASS_CRITICAL_DIVERGENCE_DETECTED_RECONCILIATION_REQUIRED",
+    "summary": "All 7 core components and 5 supporting trees were audited byte-for-byte via SHA-256 and read-only Git inspection. CRITICAL FINDING: <LEGACY_MONOREPO_ROOT> was snapshotted on 2026-11-20T22:02:43+07:00 (commit d649451) with cross-platform path refactors (paths.js, paths.py), while 100% of live Windows services continued running from <LEGACY_PLATFORM_ROOT> and <LOCAL_RUNTIME_DATA>/hermes where three major feature waves were subsequently built on Nov 21-23 without full backporting into <LEGACY_MONOREPO_ROOT>: (1) 23-phase Telegram Control Center (8 new modules in office-bridge/telegram-control + 151.8 KB telegram-control-adapter.js + updated unified-company-control plugin), (2) 11-Agent GitHub Skill Registry & Security Gate (integration/agent_skills_manager.py, office-bridge/adapters/agent-skills-bridge.js, skill-registry/manifests+checksums, org_provisioner.py), and (3) Nov 23 Paperclip Hermes adapter patches (execute.ts/js --query-file + skills.ts/js skill-registry junction/symlink reconciliation) plus Hermes Agent upstream advancement to eb49b8920a with 1-line error_classifier.py patch. Reconciling both trees using a Pinned-Upstream + Declarative-Patch + First-Class Source architecture preserves 100% of custom features while shrinking repository size from 1,037.68 MiB (93,957 files) to ~11.5 MiB (<950 tracked files, 98.9% reduction).",
+    "sanitization_status": "PUBLIC_RELEASE_SANITIZED_ZERO_HOST_PATHS"
+  },
+  "phase_00_local_runtime_state": {
+    "active_root_serving_production": "<LEGACY_PLATFORM_ROOT> + <WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes + <WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/npm/node_modules/hermes-agent/runtime/hermes-agent",
+    "processes_running_from_LEGACY_MONOREPO_ROOT": 0,
+    "listening_ports": [
+      {
+        "port": 3100,
+        "bind_address": "127.0.0.1",
+        "service": "Paperclip Control Plane",
+        "pid": 11996,
+        "parent_pid": 10764,
+        "parent_name": "PaperclipServiceLauncher.exe",
+        "process_name": "node.exe",
+        "executable": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/tools/node-26.12.1-win32-x64/node.exe",
+        "command_line_sanitized": "\"<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/tools/node-26.12.1-win32-x64/node.exe\" \"<LEGACY_PLATFORM_ROOT>/scripts/paperclip-server-entry.mjs\"",
+        "runtime_module": "<LEGACY_PLATFORM_ROOT>/runtime/paperclip-app/node_modules/@paperclipai/server/dist/index.js (paperclipai@2026.1117.0)",
+        "working_set_mb": 713.02,
+        "health_probe": {
+          "url": "http://127.0.0.1:3100/api/health",
+          "http_status": 200,
+          "response": {
+            "status": "ok",
+            "deploymentMode": "authenticated",
+            "deploymentExposure": "private",
+            "localAiLoginSupported": true,
+            "commit": "c0f132898d2a2677312d8c72096187b27a3d9a38",
+            "bootstrapStatus": "ready",
+            "databaseBackup_status": "ok"
+          }
+        }
+      },
+      {
+        "port": 3200,
+        "bind_address": "127.0.0.1",
+        "service": "Hermes3D & 2D Virtual Office",
+        "pid": 10760,
+        "parent_pid": 13572,
+        "parent_name": "OfficeServiceLauncher.exe",
+        "process_name": "node.exe",
+        "executable": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/tools/node-26.12.1-win32-x64/node.exe",
+        "command_line_sanitized": "\"<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/tools/node-26.12.1-win32-x64/node.exe\" \"<LEGACY_PLATFORM_ROOT>/hermes3d/source/server/index.js\"",
+        "working_set_mb": 12.93,
+        "health_probe": {
+          "url": "http://127.0.0.1:3200/api/health",
+          "http_status": 200,
+          "root_gate_http_status": 401,
+          "response": {
+            "ok": true,
+            "service": "hermes3d"
+          }
+        }
+      },
+      {
+        "port": 3210,
+        "bind_address": "127.0.0.1",
+        "service": "Unified Office Bridge",
+        "pid": 16900,
+        "parent_pid": 13572,
+        "parent_name": "OfficeServiceLauncher.exe",
+        "process_name": "node.exe",
+        "executable": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/tools/node-26.12.1-win32-x64/node.exe",
+        "command_line_sanitized": "\"<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/tools/node-26.12.1-win32-x64/node.exe\" \"<LEGACY_PLATFORM_ROOT>/office-bridge/server.js\"",
+        "working_set_mb": 116.8,
+        "health_probe": {
+          "url": "http://127.0.0.1:3210/health",
+          "http_status": 200,
+          "api_auth_gate_http_status": 401,
+          "response": {
+            "ok": true,
+            "status": "healthy",
+            "service": "office-bridge",
+            "version": "1.0.0",
+            "paperclip_reachable": true,
+            "latest_sequence": 7323
+          }
+        }
+      },
+      {
+        "port": 54329,
+        "bind_address": "127.0.0.1, ::1",
+        "service": "Paperclip Embedded PostgreSQL",
+        "pid": 4728,
+        "parent_pid": 11996,
+        "parent_name": "node.exe (Paperclip Server)",
+        "process_name": "postgres.exe",
+        "executable": "<LEGACY_PLATFORM_ROOT>/runtime/paperclip-app/node_modules/@embedded-postgres/windows-x64/native/bin/postgres.exe",
+        "command_line_sanitized": "<LEGACY_PLATFORM_ROOT>/runtime/paperclip-app/node_modules/@embedded-postgres/windows-x64/native/bin/postgres.exe -D <LEGACY_PLATFORM_ROOT>/data/paperclip/instances/default/db -p 54329",
+        "working_set_mb_master": 13.09,
+        "total_postgres_processes": 16,
+        "working_set_mb_total_cluster": 430.5
+      }
+    ],
+    "background_daemons": [
+      {
+        "service": "Hermes Telegram & Messaging Gateway",
+        "pid": 15452,
+        "launcher_pids": [
+          16092,
+          2468
+        ],
+        "process_name": "python.exe",
+        "executable": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/tools/python-3.14.9+20261021-win32-x64/python.exe",
+        "command_line_sanitized": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/tools/python-3.14.9+20261021-win32-x64/python.exe -m hermes_cli.main gateway run",
+        "pythonpath": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/npm/node_modules/hermes-agent/runtime/hermes-agent",
+        "hermes_home": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes",
+        "internal_loopback_ports": [
+          64513,
+          64602
+        ],
+        "working_set_mb": 59.04
+      },
+      {
+        "service": "Hermes Auto-Updater Daemon",
+        "pid": 11448,
+        "launcher_pid": 9496,
+        "process_name": "powershell.exe",
+        "command_line_sanitized": "\"C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\powershell.exe\" -NoProfile -NonInteractive -WindowStyle Hidden -File \"<WINDOWS_USER_HOME>/HermesUpdater/hermes-autoupdate.ps1\" run",
+        "working_set_mb": 28.78
+      }
+    ],
+    "scheduled_tasks": [
+      {
+        "task_path": "\\",
+        "task_name": "Hermes_Gateway",
+        "state": "Running",
+        "principal": "<WINDOWS_TASK_PRINCIPAL> (Interactive, Limited)",
+        "execute": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/gateway-service/HermesGatewayLauncher.exe",
+        "args": "//B //Nologo \"<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/gateway-service/Hermes_Gateway.vbs\"",
+        "workdir": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes",
+        "triggers": [
+          "Logon",
+          "SessionStateChange",
+          "Event",
+          "Time(PT1M)"
+        ],
+        "last_task_result": 2147946720
+      },
+      {
+        "task_path": "\\Hermes\\",
+        "task_name": "HermesAutoUpdate",
+        "state": "Running",
+        "principal": "<WINDOWS_TASK_PRINCIPAL> (Interactive, Limited)",
+        "execute": "<WINDOWS_USER_HOME>/HermesUpdater/HermesAutoUpdateLauncher.exe",
+        "args": "run",
+        "workdir": "<WINDOWS_USER_HOME>/HermesUpdater",
+        "triggers": [
+          "Daily(03:00)",
+          "Logon",
+          "Time(PT1M)",
+          "SessionStateChange",
+          "Event"
+        ],
+        "last_task_result": 2147946720
+      },
+      {
+        "task_path": "\\Hermes\\",
+        "task_name": "HermesPostRebootVerify",
+        "state": "Ready",
+        "principal": "<WINDOWS_TASK_PRINCIPAL> (Interactive, Limited)",
+        "execute": "powershell.exe",
+        "args": "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"<WINDOWS_USER_HOME>/HermesUpdater/post-reboot-verify.ps1\"",
+        "workdir": "<WINDOWS_USER_HOME>/HermesUpdater",
+        "triggers": [
+          "Logon"
+        ],
+        "last_task_result": 0
+      },
+      {
+        "task_path": "\\Hermes\\",
+        "task_name": "OfficeVirtualCompany",
+        "state": "Running",
+        "principal": "<WINDOWS_TASK_PRINCIPAL> (Interactive, Limited)",
+        "execute": "<LEGACY_PLATFORM_ROOT>/runtime/bin/OfficeServiceLauncher.exe",
+        "args": "",
+        "workdir": "<LEGACY_PLATFORM_ROOT>",
+        "triggers": [
+          "Logon"
+        ],
+        "last_task_result": 267009
+      },
+      {
+        "task_path": "\\Hermes\\",
+        "task_name": "PaperclipServer",
+        "state": "Running",
+        "principal": "<WINDOWS_TASK_PRINCIPAL> (Interactive, Limited)",
+        "execute": "<LEGACY_PLATFORM_ROOT>/runtime/bin/PaperclipServiceLauncher.exe",
+        "args": "",
+        "workdir": "<LEGACY_PLATFORM_ROOT>",
+        "triggers": [
+          "Logon",
+          "SessionStateChange",
+          "Event",
+          "Time(PT1M)"
+        ],
+        "last_task_result": 2147946720
+      },
+      {
+        "task_path": "\\Hermes\\",
+        "task_name": "PlatformHealthWatchdog",
+        "state": "Ready",
+        "principal": "<WINDOWS_TASK_PRINCIPAL> (Interactive, Limited)",
+        "execute": "powershell.exe",
+        "args": "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File \"<LEGACY_PLATFORM_ROOT>/scripts/platform-watchdog.ps1\"",
+        "workdir": "<LEGACY_PLATFORM_ROOT>",
+        "triggers": [
+          "Logon",
+          "Time(PT15M)"
+        ],
+        "last_task_result": 0
+      },
+      {
+        "task_path": "\\Hermes\\",
+        "task_name": "PlatformMaintenance",
+        "state": "Ready",
+        "principal": "<WINDOWS_TASK_PRINCIPAL> (Interactive, Limited)",
+        "execute": "powershell.exe",
+        "args": "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command \"& '<LEGACY_PLATFORM_ROOT>/runtime/bin/ai-platform.cmd' run-maintenance\"",
+        "workdir": "<LEGACY_PLATFORM_ROOT>",
+        "triggers": [
+          "Daily(03:02)",
+          "Logon",
+          "SessionStateChange"
+        ],
+        "last_task_result": 1
+      }
+    ],
+    "windows_scm_services_for_platform": []
+  },
+  "git_repositories_inventory": [
+    {
+      "path": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/npm/node_modules/hermes-agent/runtime/hermes-agent",
+      "component": "hermes-agent (active runtime)",
+      "remote_url": "https://github.com/NousResearch/hermes-agent.git",
+      "branch": "main",
+      "head_sha": "eb49b8920a25ffa7bb2fadf548fe819221ca79d7",
+      "commit_date": "2026-11-23T14:05:46-05:00",
+      "describe_tag": "canary.20261123T065600Z-v0.23.3-100-geb49b8920a",
+      "base_version": "0.23.3",
+      "git_dir_size_bytes": 578292789,
+      "git_dir_size_mib": 551.5,
+      "dirty_files_count": 1,
+      "dirty_files": [
+        "M agent/error_classifier.py"
+      ],
+      "diff_stat": "agent/error_classifier.py | 1 insertion(+)"
+    },
+    {
+      "path": "<LEGACY_PLATFORM_ROOT>/paperclip",
+      "component": "paperclip (source clone)",
+      "remote_url": "https://github.com/paperclipai/paperclip.git",
+      "branch": "master",
+      "head_sha": "3dffb2c9dd391a50913833c0fbb439d7a2f313a8",
+      "commit_date": "2026-11-18T17:38:38-08:00",
+      "describe_tag": "canary/v2026.1119.0-canary.830200-3-g3dffb2c9",
+      "active_npm_runtime_version": "paperclipai@2026.1117.0 (commit c0f132898d2a2677312d8c72096187b27a3d9a38)",
+      "git_dir_size_bytes": 79089317,
+      "git_dir_size_mib": 75.43,
+      "dirty_files_count": 2,
+      "dirty_files": [
+        "M packages/adapters/hermes/src/server/execute.ts",
+        "M packages/adapters/hermes/src/server/skills.ts"
+      ],
+      "diff_stat": "2 files changed, 63 insertions(+), 9 deletions(-)"
+    },
+    {
+      "path": "<LEGACY_PLATFORM_ROOT>/vulnclaw",
+      "component": "vulnclaw",
+      "remote_url": "https://github.com/Netw0rkNoob/VulnClaw.git",
+      "branch": "main",
+      "head_sha": "0b34878f84b089b21fcf85ecd445315f14df0672",
+      "commit_date": "2026-10-05T23:34:33+08:00",
+      "describe_tag": "v0.4.1",
+      "git_dir_size_bytes": 3751404,
+      "git_dir_size_mib": 3.58,
+      "dirty_files_count": 0,
+      "dirty_files": [],
+      "diff_stat": "clean"
+    },
+    {
+      "path": "<LEGACY_PLATFORM_ROOT>/hermes3d/source",
+      "component": "hermes3d",
+      "remote_url": "https://github.com/iamlukethedev/Hermes3D",
+      "branch": "integration/unified-ai-company",
+      "upstream_base_sha": "beb7629 (v1.0.0 + 4 upstream commits)",
+      "head_sha": "21215d77f2a5e526eb80692c0a44f05a4face7a1",
+      "commit_date": "2026-11-19T19:39:30+07:00",
+      "describe_tag": "v1.0.0-6-g21215d7",
+      "custom_commits_above_origin_main": [
+        "dc22e94 feat(enterprise-company): integrate Paperclip Office Bridge, 6-tab Command Center, quality presets, and security hardening (15 files, +2318/-22)",
+        "21215d7 feat(access-gate): persist studio_access HttpOnly cookie for 30 days (1 file, +1/-1)"
+      ],
+      "git_dir_size_bytes": 8150570,
+      "git_dir_size_mib": 7.77,
+      "dirty_files_count": 26,
+      "dirty_files": [
+        "M src/app/api/path-suggestions/route.ts",
+        "M src/features/enterprise-company/EnterpriseOfficeOverlay.tsx",
+        "M src/features/enterprise-company/useEnterpriseCompanyLive.ts",
+        "M src/features/office/components/HQSidebar.tsx",
+        "M src/features/office/components/panels/AnalyticsPanel.tsx",
+        "M src/features/office/hooks/useApprovalMetrics.ts",
+        "M src/features/office/hooks/useOfficeStandupController.ts",
+        "M src/features/office/hooks/useOfficeUsageAnalyticsViewModel.ts",
+        "M src/features/office/hooks/usePerformanceAnalytics.ts",
+        "M src/features/office/hooks/useRunLog.ts",
+        "M src/features/office/screens/OfficeScreen.tsx",
+        "M src/features/pixel-office/PixelOffice2D.tsx",
+        "M src/features/pixel-office/PixelSceneBridge.ts",
+        "M src/features/pixel-office/buildPixelInputs.ts",
+        "M src/features/pixel-office/map/hermesHqMap.ts",
+        "M src/features/pixel-office/scene/PixelOfficeScene.ts",
+        "M src/features/retro-office/RetroOffice3D.tsx",
+        "M src/features/retro-office/core/geometry.ts",
+        "M src/features/retro-office/core/navigation.ts",
+        "M src/features/retro-office/systems/NavigationSystem.tsx",
+        "M src/lib/office/deskDirectives.ts",
+        "M src/lib/office/usageAnalyticsPresentation.ts",
+        "M tests/unit/pixelOfficeInputs.test.ts",
+        "M tests/unit/pixelOfficeSim.test.ts",
+        "?? src/features/enterprise-company/TargetFolderPickerModal.tsx",
+        "?? tests/unit/standup3dAll11Agents.test.ts"
+      ],
+      "diff_stat": "24 tracked files changed, 827 insertions(+), 105 deletions(-) + 2 untracked files"
+    },
+    {
+      "path": "<LEGACY_MONOREPO_ROOT>",
+      "component": "LEGACY_MONOREPO_ROOT unified staging monorepo",
+      "remote_url": null,
+      "branch": "main",
+      "head_sha": "d649451b057c75eca8f46ae127980e4f5bd65ec5",
+      "commit_date": "2026-11-20T22:02:43+07:00",
+      "describe_tag": "d649451",
+      "git_dir_size_bytes": 543799615,
+      "git_dir_size_mib": 518.61,
+      "dirty_files_count": 4,
+      "dirty_files": [
+        "M THIRD_PARTY_NOTICES.md",
+        "?? config/portable-skill-manifest.json",
+        "?? docs/AGENT-SKILLS-PORTABILITY.md",
+        "?? scripts/install-agent-skills.py"
+      ],
+      "diff_stat": "THIRD_PARTY_NOTICES.md | 15 insertions(+) + 3 untracked files"
+    }
+  ],
+  "components": {
+    "hermes-agent": {
+      "upstream_repo": "https://github.com/NousResearch/hermes-agent.git",
+      "license": "MIT",
+      "active_runtime_path": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/npm/node_modules/hermes-agent/runtime/hermes-agent",
+      "legacy_monorepo_path": "<LEGACY_MONOREPO_ROOT>/hermes-agent",
+      "pinned_upstream_sha": "eb49b8920a25ffa7bb2fadf548fe819221ca79d7",
+      "legacy_monorepo_approximate_sha": "2de9f51b8008a7d49a49221c184f2f11cbfc4af1 (2026-11-20 snapshot, ~100+ upstream commits behind active runtime)",
+      "clean_source_files": 27554,
+      "clean_source_bytes": 274559340,
+      "clean_source_mib": 261.84,
+      "comparison_vs_legacy_monorepo": {
+        "identical_files": 26296,
+        "only_in_active_runtime": 449,
+        "only_in_legacy_monorepo": 4,
+        "active_runtime_newer": 806,
+        "legacy_monorepo_newer": 0
+      },
+      "custom_patches": [
+        {
+          "file": "agent/error_classifier.py",
+          "category": "b_custom_patch_to_upstream",
+          "lines_changed": "+1/-0",
+          "description": "Adds \"model_not_available_for_integrator\" after \"no endpoints found that support tool use\" in _MODEL_NOT_FOUND_PATTERNS so Hermes triggers automatic fallback instead of retrying dead integrator model routes. Managed declaratively via HermesUpdater config.json CUSTOMIZATIONS."
+        }
+      ],
+      "recommended_strategy": "DO_NOT_VENDOR_FULL_TREE: Pin upstream commit SHA eb49b8920a25ffa7bb2fadf548fe819221ca79d7 in config/upstream-locks.json; fetch via shallow git archive/clone --depth 1 during Docker image build (excluding apps/desktop, website, tests, evals, nix -> saves >180 MiB) and apply patches/hermes-agent/0001-error-classifier-integrator.patch."
+    },
+    "paperclip": {
+      "upstream_repo": "https://github.com/paperclipai/paperclip.git",
+      "license": "MIT",
+      "source_clone_path": "<LEGACY_PLATFORM_ROOT>/paperclip",
+      "active_runtime_path": "<LEGACY_PLATFORM_ROOT>/runtime/paperclip-app (paperclipai@2026.1117.0)",
+      "legacy_monorepo_path": "<LEGACY_MONOREPO_ROOT>/paperclip",
+      "source_clone_sha": "3dffb2c9dd391a50913833c0fbb439d7a2f313a8",
+      "active_npm_package": "paperclipai@2026.1117.0 (@paperclipai/server@2026.1117.0, commit c0f132898d2a2677312d8c72096187b27a3d9a38)",
+      "clean_source_files": 17360,
+      "clean_source_bytes": 257723352,
+      "clean_source_mib": 245.78,
+      "comparison_vs_legacy_monorepo": {
+        "identical_files": 17355,
+        "only_in_legacy_platform": 0,
+        "only_in_legacy_monorepo": 0,
+        "legacy_platform_newer": 2,
+        "legacy_monorepo_newer": 0,
+        "missing_from_legacy_monorepo": [
+          "packages/adapters/hermes/src/server/execute.ts (modified 2026-11-23T03:28Z)",
+          "packages/adapters/hermes/src/server/skills.ts (modified 2026-11-23T03:51Z)"
+        ]
+      },
+      "custom_patches": [
+        {
+          "file": "packages/adapters/hermes/src/server/execute.ts (and runtime dist/server/execute.js)",
+          "category": "b_custom_patch_to_upstream_and_c_cross_platform",
+          "lines_changed": "+16/-1",
+          "description": "Writes prompt to temporary file and passes --query-file when process.platform === 'win32' || prompt.length > 6000 (preventing Windows 32KB CreateProcessW ENAMETOOLONG and keeping large multi-agent prompts clean on Linux), unlinking tempQueryFile in finally{}."
+        },
+        {
+          "file": "packages/adapters/hermes/src/server/skills.ts (and runtime dist/server/skills.js)",
+          "category": "b_custom_patch_to_upstream",
+          "lines_changed": "+56/-8",
+          "description": "Reconciles Paperclip & Skill-Registry managed skills (-- namespaced runtimeName and skill-registry paths) cleanly across directory symlinks/junctions, with EPERM/ENOSYS copy fallback via materializePaperclipSkillCopy."
+        }
+      ],
+      "recommended_strategy": "INSTALL_PINNED_NPM_PACKAGE_PLUS_DECLARATIVE_PATCH: Do not vendor 17,360-file (245.78 MiB) Turborepo source or run multi-GB pnpm builds on a 2-vCPU/8-GB VPS. Match live production by locking paperclipai@2026.1117.0 in runtime/paperclip-app/package.json (with external PostgreSQL 16 container on Linux instead of @embedded-postgres/windows-x64) and applying patches/paperclip/hermes-paperclip-adapter+2026.1117.0.patch (plus keeping source .ts patch in patches/paperclip/source-reference.patch)."
+    },
+    "vulnclaw": {
+      "upstream_repo": "https://github.com/Netw0rkNoob/VulnClaw.git",
+      "license": "MIT",
+      "legacy_platform_path": "<LEGACY_PLATFORM_ROOT>/vulnclaw",
+      "legacy_monorepo_path": "<LEGACY_MONOREPO_ROOT>/vulnclaw",
+      "pinned_upstream_sha": "0b34878f84b089b21fcf85ecd445315f14df0672",
+      "tag": "v0.4.1",
+      "clean_source_files": 716,
+      "clean_source_bytes": 8611256,
+      "clean_source_mib": 8.21,
+      "comparison_vs_legacy_monorepo": {
+        "identical_files": 715,
+        "only_in_legacy_platform": 0,
+        "only_in_legacy_monorepo": 0,
+        "legacy_platform_newer": 0,
+        "legacy_monorepo_newer": 0
+      },
+      "custom_patches": [],
+      "recommended_strategy": "PINNED_UPSTREAM_FETCH_ZERO_PATCHES: 0 files modified vs upstream v0.4.1 (0b34878f84b089b21fcf85ecd445315f14df0672). Fetch shallowly at Docker build / install time (or install Python package directly from pinned commit) and drive strictly in defensive static-analysis mode via first-party integration/vulnclaw_defensive.py + config/vulnclaw.defensive.yaml."
+    },
+    "hermes3d": {
+      "upstream_repo": "https://github.com/iamlukethedev/Hermes3D",
+      "license": "MIT",
+      "legacy_platform_path": "<LEGACY_PLATFORM_ROOT>/hermes3d/source",
+      "legacy_monorepo_path": "<LEGACY_MONOREPO_ROOT>/hermes3d",
+      "upstream_base_sha": "beb7629",
+      "local_branch_head_sha": "21215d77f2a5e526eb80692c0a44f05a4face7a1",
+      "clean_source_files": 654,
+      "clean_source_bytes": 8316322,
+      "clean_source_mib": 7.93,
+      "comparison_vs_legacy_monorepo": {
+        "identical_files": 648,
+        "only_in_legacy_platform": 2,
+        "only_in_legacy_platform_details": [
+          "next-env.d.ts (regenerable)",
+          "tsconfig.tsbuildinfo (regenerable)"
+        ],
+        "only_in_legacy_monorepo": 0,
+        "legacy_platform_newer": 0,
+        "legacy_monorepo_newer": 5,
+        "legacy_monorepo_newer_files": [
+          "src/app/api/company/[...slug]/route.ts",
+          "src/app/api/path-suggestions/route.ts",
+          "src/app/api/runtime/custom/route.ts",
+          "src/features/enterprise-company/EnterpriseOfficeOverlay.tsx",
+          "src/features/enterprise-company/TargetFolderPickerModal.tsx"
+        ]
+      },
+      "custom_patches": [
+        {
+          "scope": "38 customized/added files (+3,145 insertions)",
+          "category": "b_custom_patch_to_upstream_and_a_first_party_features",
+          "description": "6-tab Enterprise Command Center Overlay, Paperclip/Office Bridge live proxy (/api/company/[...slug]), 30-day studio_access HttpOnly cookie gate, 3D & 2D Pixel Office 11-agent standup & navigation fixes, real-time token/cost/approval/run analytics hooks, Local Target Folder Picker modal, plus cross-platform path portability in <LEGACY_MONOREPO_ROOT>/hermes3d (note: server/index.js still has 1 residual LEGACY_PLATFORM_ROOT fallback string to clean in PHASE-07)."
+        }
+      ],
+      "recommended_strategy": "TRACK_DIRECTLY_IN_MONOREPO: Because hermes3d is only 7.93 MiB (653 source files) and has 38 heavily customized/new first-party UI & server files, commit <LEGACY_MONOREPO_ROOT>/hermes3d directly into ALLINAGENT/hermes3d (excluding .git, node_modules, .next, tsconfig.tsbuildinfo) while recording upstream base SHA beb7629 in THIRD_PARTY_NOTICES.md."
+    },
+    "office-bridge": {
+      "upstream_repo": null,
+      "classification": "a_first_party_integration_code",
+      "legacy_platform_path": "<LEGACY_PLATFORM_ROOT>/office-bridge",
+      "legacy_monorepo_path": "<LEGACY_MONOREPO_ROOT>/office-bridge",
+      "clean_source_files_legacy_platform": 26,
+      "clean_source_files_legacy_monorepo": 18,
+      "clean_source_bytes_legacy_platform": 670930,
+      "divergence_type": "SPLIT_DIVERGENCE_MUST_MERGE",
+      "only_in_legacy_platform_nov21_23": [
+        "adapters/agent-skills-bridge.js",
+        "telegram-control/analytics-budget-security-health.js",
+        "telegram-control/command-center-ui.js",
+        "telegram-control/command-registry.js",
+        "telegram-control/delegation-and-paperclip-controller.js",
+        "telegram-control/folder-and-dev-controller.js",
+        "telegram-control/jobs-notifications-nl-reliability.js",
+        "telegram-control/office-and-meeting-controller.js",
+        "telegram-control/security-guard.js",
+        "tests/phase02_03_arch_security.test.js"
+      ],
+      "newer_in_legacy_platform_nov21_23": [
+        "adapters/agent-chat-engine.js",
+        "adapters/analytics-telemetry-adapter.js",
+        "adapters/paperclip-adapter.js",
+        "adapters/telegram-control-adapter.js",
+        "contracts/agent-identity.js",
+        "events/realtime-synchronizer.js",
+        "server.js",
+        "tests/office-bridge.test.js"
+      ],
+      "only_or_newer_in_legacy_monorepo_portability_nov20": [
+        "contracts/paths.js",
+        "package.json",
+        "adapters/target-folders-manager.js",
+        "adapters/vulnclaw-findings-adapter.js",
+        "authorization/auth.js",
+        "contracts/event-schema.js",
+        "contracts/redaction.js",
+        "contracts/state-machine.js",
+        "contracts/ws-loader.js",
+        "tests/telegram-control.test.js"
+      ],
+      "windows_hardcoded_paths_in_legacy_platform": {
+        "files_with_hardcoded_legacy_platform_root": 21,
+        "files_with_hardcoded_windows_user_home": 13
+      },
+      "recommended_strategy": "MERGE_IN_ALLINAGENT: Use <LEGACY_PLATFORM_ROOT>/office-bridge (26 files including all Nov 21-23 Telegram Control Center & Agent Skills Bridge modules) as functional base, add contracts/paths.js + package.json from <LEGACY_MONOREPO_ROOT>/office-bridge, and replace all 21 hardcoded <LEGACY_PLATFORM_ROOT> / <WINDOWS_USER_HOME> references with contracts/paths.js exports."
+    },
+    "integration": {
+      "upstream_repo": null,
+      "classification": "a_first_party_integration_code",
+      "legacy_platform_path": "<LEGACY_PLATFORM_ROOT>/integration",
+      "legacy_monorepo_path": "<LEGACY_MONOREPO_ROOT>/integration",
+      "clean_source_files_legacy_platform": 9,
+      "clean_source_files_legacy_monorepo": 10,
+      "clean_source_bytes_legacy_platform": 177298,
+      "divergence_type": "SPLIT_DIVERGENCE_MUST_MERGE",
+      "only_in_legacy_platform_nov23": [
+        "agent_skills_manager.py"
+      ],
+      "newer_in_legacy_platform_nov21_23": [
+        "findings_engine.py",
+        "maintenance_coordinator.py",
+        "org_provisioner.py",
+        "platform_cli.py",
+        "vulnclaw_defensive.py"
+      ],
+      "only_or_newer_in_legacy_monorepo_portability_nov20": [
+        "__init__.py",
+        "paths.py",
+        "hermes_worker_factory.py",
+        "paperclip_client.py",
+        "workflow_engine.py"
+      ],
+      "windows_specific_dependencies": {
+        "files_calling_powershell_or_schtasks": [
+          "hermes_worker_factory.py",
+          "maintenance_coordinator.py",
+          "platform_cli.py"
+        ]
+      },
+      "recommended_strategy": "MERGE_IN_ALLINAGENT: Take agent_skills_manager.py + 5 Nov 21-23 updated modules from <LEGACY_PLATFORM_ROOT>/integration, combine with __init__.py + paths.py + 3 already-ported modules from <LEGACY_MONOREPO_ROOT>/integration, refactor remaining hardcoded Windows paths to integration.paths, and replace powershell/schtasks/cmd shims in PHASE-07."
+    },
+    "agents_and_skill_registry": {
+      "upstream_repo": "Multiple pinned GitHub skill repos (see config/portable-skill-manifest.json & skill-registry/manifests/skill-lock.json)",
+      "classification": "a_first_party_integration_code_plus_pinned_upstream_skills",
+      "paths": {
+        "local_hermes_plugin": "<WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/plugins/unified-company-control",
+        "legacy_monorepo_extensions": "<LEGACY_MONOREPO_ROOT>/agents/hermes-extensions",
+        "legacy_platform_skill_registry": "<LEGACY_PLATFORM_ROOT>/skill-registry",
+        "legacy_monorepo_skill_manifest": "<LEGACY_MONOREPO_ROOT>/config/portable-skill-manifest.json"
+      },
+      "divergence_details": {
+        "unified_company_control_plugin_init_py": "<LOCAL_RUNTIME_DATA>/hermes/plugins/unified-company-control/__init__.py is 25,518 B (modified 2026-11-23T05:01Z) vs 20,012 B in <LEGACY_MONOREPO_ROOT> (2026-11-20) \u2014 +5.5 KB of newer Telegram Control Center routing/callbacks in <LOCAL_RUNTIME_DATA>/hermes, while <LEGACY_MONOREPO_ROOT> has dynamic .allinagent_root path resolution. Must merge both.",
+        "unified_legacy_platform_skill_md": "<LEGACY_MONOREPO_ROOT>/agents/hermes-extensions/skills/unified-ai-platform/SKILL.md (4,414 B) is newer/portable vs <LOCAL_RUNTIME_DATA>/hermes (4,365 B).",
+        "skill_registry_manifests_and_tests": "<LEGACY_PLATFORM_ROOT>/skill-registry/{manifests,checksums,tests} and docs/agent-skills/* (built 2026-11-23) are missing from <LEGACY_MONOREPO_ROOT> (which only received config/portable-skill-manifest.json, scripts/install-agent-skills.py, docs/AGENT-SKILLS-PORTABILITY.md, and THIRD_PARTY_NOTICES.md)."
+      },
+      "license_compliance_guardrail": "Skills under Commons Clause v1.0 + MIT (borghei/Claude-Skills) or missing root LICENSE (vercel-labs/agent-skills) MUST remain FETCH_FROM_UPSTREAM_ONLY at install time via scripts/install-agent-skills.py and MUST NOT be vendored into the public ALLINAGENT repo."
+    },
+    "supporting_trees": {
+      "scripts_and_hermes_updater": {
+        "legacy_monorepo_scripts_count": 25,
+        "legacy_monorepo_hermes_updater_count": 10,
+        "windows_only_files": [
+          "scripts/OfficeServiceLauncher.cs",
+          "scripts/PaperclipServiceLauncher.cs",
+          "scripts/platform-watchdog.ps1",
+          "scripts/register-paperclip-task.ps1",
+          "scripts/register-platform-tasks.ps1",
+          "scripts/rotate-platform-credentials.ps1",
+          "scripts/hermes-updater/*.ps1",
+          "scripts/hermes-updater/CuaDriverProxy.cs",
+          "<WINDOWS_USER_HOME>/HermesUpdater/HermesAutoUpdateLauncher.exe"
+        ],
+        "note": "Keep cross-platform Node/Python setup & verification scripts in scripts/; isolate legacy Windows Task Scheduler / C# launcher scripts under scripts/windows-legacy/ or replace with Docker Compose + systemd timer units on Ubuntu."
+      },
+      "docs_and_tests": {
+        "missing_from_legacy_monorepo": [
+          "<LEGACY_PLATFORM_ROOT>/docs/telegram-control/* (17 files, Nov 21-23)",
+          "<LEGACY_PLATFORM_ROOT>/docs/agent-skills/* (24 files, Nov 23)",
+          "<LEGACY_PLATFORM_ROOT>/skill-registry/tests/* (6 Python test/benchmark suites, Nov 23)",
+          "<LEGACY_PLATFORM_ROOT>/tests/verify_phases_04_to_10.py",
+          "<LEGACY_PLATFORM_ROOT>/tests/verify_phases_11_to_20.py",
+          "<LEGACY_PLATFORM_ROOT>/tests/verify_phase_21_parity.py",
+          "<LEGACY_PLATFORM_ROOT>/tests/verify_phase_22_security_and_rounds.py",
+          "<LEGACY_PLATFORM_ROOT>/tests/run_phase_23_final_demonstration.py"
+        ]
+      }
+    }
+  },
+  "change_classification_taxonomy": {
+    "a_first_party_integration_code": [
+      "office-bridge/** (26 active files + contracts/paths.js + package.json: Unified HTTP/WS bridge, RBAC/Access Gate, 23-phase Telegram Control Center, Agent Skills Bridge, Analytics/Telemetry, Target Folder Manager, VulnClaw Findings Adapter)",
+      "integration/** (11 Python modules: platform_cli.py, org_provisioner.py, workflow_engine.py, findings_engine.py, vulnclaw_defensive.py, agent_skills_manager.py, hermes_worker_factory.py, maintenance_coordinator.py, paperclip_client.py, paths.py, __init__.py)",
+      "agents/roles/** & agents/organization-roster.template.json (11 corporate AI role definitions & prompts)",
+      "agents/hermes-extensions/** (unified-company-control Hermes plugin & unified-ai-platform skill)",
+      "skill-registry/manifests/**, skill-registry/checksums/**, config/portable-skill-manifest.json, scripts/install-agent-skills.py",
+      "hermes3d/src/features/enterprise-company/**, hermes3d/src/app/api/company/** (Enterprise Command Center overlay, TargetFolderPickerModal, company proxy routes)",
+      "start-all.mjs, scripts/setup-all.mjs, scripts/init-secrets.mjs, scripts/paperclip-server-entry.mjs, docker-compose.yml",
+      "docs/** & tests/** (architecture, security, Telegram Control, Agent Skills, E2E suites)"
+    ],
+    "b_custom_patches_to_upstream": [
+      "hermes-agent: agent/error_classifier.py (+1 line: \"model_not_available_for_integrator\" in _MODEL_NOT_FOUND_PATTERNS)",
+      "paperclip: packages/adapters/hermes/src/server/execute.ts (+16/-1: --query-file temp file execution + finally cleanup)",
+      "paperclip: packages/adapters/hermes/src/server/skills.ts (+56/-8: skill-registry & -- namespaced skill symlink/junction reconciliation + copy fallback)",
+      "hermes3d: 35 modified upstream/feature files across server/{access-gate,gateway-proxy,index}.js, next.config.ts, src/features/{office,pixel-office,retro-office}/**, src/lib/office/**"
+    ],
+    "c_windows_specific_adaptations": [
+      "C# Win32 hidden-process launchers: PaperclipServiceLauncher.cs/.exe, OfficeServiceLauncher.cs/.exe, HermesGatewayLauncher.cs/.exe, HermesAutoUpdateLauncher.exe, CuaDriverProxy.cs",
+      "Windows Task Scheduler & PowerShell ops scripts: platform-watchdog.ps1, register-paperclip-task.ps1, register-platform-tasks.ps1, rotate-platform-credentials.ps1, Hermes_Gateway.cmd/.vbs, setup.ps1, start-all.ps1, Open-3D-Office.cmd, hermes-updater/*.ps1",
+      "Windows binary runtimes (exclude from Git/Linux): @embedded-postgres/windows-x64, portable python-3.14.9-win32-x64, node-26.12.1-win32-x64, git-win32, ffmpeg-win32, chromium-1248-win32",
+      "Residual Windows process/path calls in Python/JS to refactor in PHASE-07: powershell/schtasks invocations in integration/{hermes_worker_factory,maintenance_coordinator,platform_cli}.py; win32 junction/drive-letter branches in paperclip skills.ts, paths.js, paths.py, folder-and-dev-controller.js; hardcoded <LEGACY_PLATFORM_ROOT> & <WINDOWS_USER_HOME> strings in Nov 21-23 LEGACY_PLATFORM_ROOT files"
+    ],
+    "d_runtime_generated_files_must_exclude": [
+      "Embedded Postgres data & backups: data/paperclip/instances/default/db/**, backups/**",
+      "Hermes runtime state & DBs: <WINDOWS_USER_HOME>/<LOCAL_RUNTIME_DATA>/hermes/{state.db*,kanban.db*,projects.db,sessions,memories,logs,cache,audio_cache,image_cache,pairing,profiles,installs,tools,.hermes-clone-*}",
+      "Secrets & credentials: .env, .env.*, auth.json, config/secrets/office-bridge-auth.json, *.local.*",
+      "Office & platform runtime telemetry: office-data/**, logs/**, reports/**, HermesUpdater/{state,logs}/**, tests/results_*.json",
+      "Cloned/staged upstream skill caches: skill-registry/{upstream,staging,reviewed,quarantine,agents,reports}/**",
+      "Sandbox test workspaces: workspaces/{acceptance-invoice-app,demo-order-service,office-acceptance-portal,phase06-smoke,phase10-isolation-lab,skill-test-fixture,tg-dev-sandbox}/**",
+      "Build & package caches: node_modules/**, .next/**, dist/**, venv/**, *-venv/**, __pycache__/**, tsconfig.tsbuildinfo, next-env.d.ts, install-stamp.json, .bytecode-fingerprint"
+    ]
+  },
+  "recommended_allinagent_source_strategy": {
+    "strategy_id": "PINNED_UPSTREAM_PLUS_DECLARATIVE_PATCHES_AND_SLIM_MONOREPO",
+    "projected_git_tracked_files": 920,
+    "projected_git_repo_size_mib": 11.5,
+    "size_reduction_vs_LEGACY_MONOREPO_ROOT_pct": 98.89,
+    "size_reduction_vs_raw_5_roots_pct": 99.89,
+    "component_layout": {
+      "config/upstream-locks.json": "Exact SHA-40 & npm version pins for hermes-agent (eb49b8920a25ffa7bb2fadf548fe819221ca79d7), paperclipai (2026.1117.0), vulnclaw (0b34878f84b089b21fcf85ecd445315f14df0672), and hermes3d base (beb7629).",
+      "patches/hermes-agent/0001-error-classifier-integrator.patch": "1-line unified diff applied cleanly after shallow fetch of NousResearch/hermes-agent@eb49b8920a25ffa7bb2fadf548fe819221ca79d7.",
+      "patches/paperclip/@paperclipai+hermes-paperclip-adapter+2026.1117.0.patch": "Deterministic patch applied via patch-package / postinstall to @paperclipai/hermes-paperclip-adapter@2026.1117.0 (execute.js --query-file + skills.js skill-registry reconciliation), plus TypeScript reference diff.",
+      "hermes3d/": "Tracked directly as clean source (~7.93 MiB, 653 files) from <LEGACY_MONOREPO_ROOT>/hermes3d with server/index.js path fix, preserving all 38 customized 3D/2D/Command-Center files.",
+      "office-bridge/": "Reconciled first-party source (~0.68 MiB, 28 files): Nov 21-23 LEGACY_PLATFORM_ROOT modules + LEGACY_MONOREPO_ROOT contracts/paths.js portability.",
+      "integration/": "Reconciled first-party Python package (~0.21 MiB, 11 files): Nov 21-23 LEGACY_PLATFORM_ROOT modules + LEGACY_MONOREPO_ROOT paths.py portability.",
+      "agents/ & skill-registry/manifests/": "11 agent role templates, reconciled unified-company-control plugin + unified-ai-platform skill, and license-compliant skill manifests/checksums (FETCH_FROM_UPSTREAM_ONLY enforced for Commons Clause / unlicensed repos).",
+      "docker/ & docker-compose.yml & install.sh": "Multi-stage Dockerfiles + one-command installer that materialize pinned upstreams, verify SHA-256/commit locks, apply patches, build Hermes3D standalone, and run within the 1,536 MiB VPS cgroup cap."
+    }
+  },
+  "declarative_patch_artifacts_sha256": [
+    {
+      "path": "patches/hermes-agent/0001-error-classifier-integrator.patch",
+      "size_bytes": 708,
+      "sha256": "e7735f635f546f93da16d63c142d2929c3f3d95b34f7b655000c1eea97b747db"
+    },
+    {
+      "path": "patches/paperclip/0001-hermes-adapter-query-file-cleanup.patch",
+      "size_bytes": 3580,
+      "sha256": "e4362b70d648e535432244bc9d80821299d196df61a8350e75ed48606f71a19e"
+    },
+    {
+      "path": "patches/paperclip/0002-hermes-adapter-skills-reconcile.patch",
+      "size_bytes": 7006,
+      "sha256": "346e73c886ab729b08435ba6846987b789df6db03ab60b95750519c42a0da853"
+    },
+    {
+      "path": "patches/paperclip/0003-hermes-gateway-internal-hosts.patch",
+      "size_bytes": 2382,
+      "sha256": "6124882d38970cab942a9093f063d0f37dbd51722b669635b809ac40d806a768"
+    },
+    {
+      "path": "patches/paperclip/0004-db-low-memory-connection-pool.patch",
+      "size_bytes": 9609,
+      "sha256": "406c9cee5b2b9bba35263aede6f5a90bf0984c937d495cdb7dd190ff940e8e43"
+    },
+    {
+      "path": "patches/paperclip/patch-manifest.json",
+      "size_bytes": 2650,
+      "sha256": "aba9f9dd1879f56c19f6e8d8d3e4d2cee60f42377ddd8fb8633b8ab69ef26011"
+    }
+  ]
+}

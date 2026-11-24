@@ -1,0 +1,25 @@
+# ==============================================================================
+# ALLINAGENT — Coordinated Daily Maintenance & Safe Update Unit
+# Defers automatically if `maintenance.lock` or active agent runs are in progress;
+# creates pre-update PostgreSQL backup and rolls back on healthcheck failure.
+# ==============================================================================
+
+[Unit]
+Description=ALLINAGENT Coordinated Maintenance, Backup & Safe Release Updater
+Documentation=https://github.com/allinagent/allinagent
+After=allinagent.service docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/allinagent
+Environment="ALLINAGENT_ROOT=/opt/allinagent"
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+CPUQuota=75%
+MemoryMax=512M
+ExecStart=/opt/allinagent/allinagent --production update --scheduled-maintenance --yes
+TimeoutStartSec=900

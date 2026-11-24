@@ -1,0 +1,504 @@
+{
+  "company_name": "ALLINAGENT \u2014 Unified Autonomous AI Company",
+  "total_agents": 11,
+  "wave1_active_count": 4,
+  "wave2_standby_count": 7,
+  "agents": {
+    "ceo_agent": {
+      "index": 1,
+      "agent_dir": "ceo",
+      "role_slug": "ceo_agent",
+      "profile_id": "pcceoagent",
+      "name": "CEO Agent",
+      "handle": "@ceo",
+      "role": "ceo",
+      "title": "Chief Executive Officer \u2014 Planning & Delegation",
+      "department": "Executive",
+      "reports_to_slug": null,
+      "wave": 1,
+      "default_activation": "ACTIVE",
+      "budget_monthly_cents": 2500,
+      "timeout_sec": 240,
+      "max_turns": 20,
+      "toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "toolsets_csv": "file,terminal,skills",
+      "hermes_home": "/data/hermes/profiles/pcceoagent",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/ceo/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/ceo/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+      "skills": {
+        "primary": [
+          "ceo-advisor"
+        ],
+        "specialist": [
+          "c-level-skills"
+        ],
+        "on_demand": [],
+        "reference_only": [],
+        "experimental": [],
+        "disabled_bundled": []
+      }
+    },
+    "cto_agent": {
+      "index": 2,
+      "agent_dir": "cto",
+      "role_slug": "cto_agent",
+      "profile_id": "pcctoagent",
+      "name": "CTO Agent",
+      "handle": "@cto",
+      "role": "cto",
+      "title": "Chief Technology Officer \u2014 Architecture & Standards",
+      "department": "Architecture",
+      "reports_to_slug": "ceo_agent",
+      "wave": 2,
+      "default_activation": "STANDBY",
+      "budget_monthly_cents": 1500,
+      "timeout_sec": 240,
+      "max_turns": 18,
+      "toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "toolsets_csv": "file,terminal,skills",
+      "hermes_home": "/data/hermes/profiles/pcctoagent",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/cto/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/cto/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+      "skills": {
+        "primary": [
+          "cto-review"
+        ],
+        "specialist": [
+          "senior-architect"
+        ],
+        "on_demand": [
+          "cto-advisor"
+        ],
+        "reference_only": [],
+        "experimental": [],
+        "disabled_bundled": []
+      }
+    },
+    "backend_developer": {
+      "index": 3,
+      "agent_dir": "backend",
+      "role_slug": "backend_developer",
+      "profile_id": "pcbackenddeveloper",
+      "name": "Backend Developer",
+      "handle": "@backend",
+      "role": "engineer",
+      "title": "Senior Full-Stack / Backend Software Engineer",
+      "department": "Engineering",
+      "reports_to_slug": "ceo_agent",
+      "wave": 1,
+      "default_activation": "ACTIVE",
+      "budget_monthly_cents": 3000,
+      "timeout_sec": 300,
+      "max_turns": 25,
+      "toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "toolsets_csv": "file,terminal,skills",
+      "hermes_home": "/data/hermes/profiles/pcbackenddeveloper",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/backend/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/backend/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+      "skills": {
+        "primary": [
+          "senior-backend"
+        ],
+        "specialist": [
+          "api-design-reviewer"
+        ],
+        "on_demand": [
+          "senior-architect"
+        ],
+        "reference_only": [],
+        "experimental": [],
+        "disabled_bundled": []
+      }
+    },
+    "frontend_developer": {
+      "index": 4,
+      "agent_dir": "frontend",
+      "role_slug": "frontend_developer",
+      "profile_id": "pcfrontenddeveloper",
+      "name": "Frontend Developer",
+      "handle": "@frontend",
+      "role": "designer",
+      "title": "Senior Frontend & UI Engineer",
+      "department": "Frontend & UI",
+      "reports_to_slug": "cto_agent",
+      "wave": 2,
+      "default_activation": "STANDBY",
+      "budget_monthly_cents": 1500,
+      "timeout_sec": 240,
+      "max_turns": 20,
+      "toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "toolsets_csv": "file,terminal,skills",
+      "hermes_home": "/data/hermes/profiles/pcfrontenddeveloper",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/frontend/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/frontend/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+      "skills": {
+        "primary": [
+          "react-best-practices"
+        ],
+        "specialist": [
+          "frontend-design"
+        ],
+        "on_demand": [],
+        "reference_only": [],
+        "experimental": [],
+        "disabled_bundled": []
+      }
+    },
+    "devops_engineer": {
+      "index": 5,
+      "agent_dir": "devops",
+      "role_slug": "devops_engineer",
+      "profile_id": "pcdevopsengineer",
+      "name": "DevOps Engineer",
+      "handle": "@devops",
+      "role": "devops",
+      "title": "Senior DevOps & Runtime Diagnostics Engineer",
+      "department": "DevOps & Runtime",
+      "reports_to_slug": "cto_agent",
+      "wave": 2,
+      "default_activation": "STANDBY",
+      "budget_monthly_cents": 1500,
+      "timeout_sec": 240,
+      "max_turns": 18,
+      "toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "toolsets_csv": "file,terminal,skills",
+      "hermes_home": "/data/hermes/profiles/pcdevopsengineer",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/devops/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/devops/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+      "skills": {
+        "primary": [
+          "senior-devops"
+        ],
+        "specialist": [
+          "terraform-skill",
+          "ci-cd-pipeline-builder"
+        ],
+        "on_demand": [],
+        "reference_only": [],
+        "experimental": [],
+        "disabled_bundled": []
+      }
+    },
+    "qa_engineer": {
+      "index": 6,
+      "agent_dir": "qa",
+      "role_slug": "qa_engineer",
+      "profile_id": "pcqaengineer",
+      "name": "QA Engineer",
+      "handle": "@qa",
+      "role": "qa",
+      "title": "Lead Quality Assurance & Regression Engineer",
+      "department": "Quality Assurance",
+      "reports_to_slug": "ceo_agent",
+      "wave": 1,
+      "default_activation": "ACTIVE",
+      "budget_monthly_cents": 2000,
+      "timeout_sec": 240,
+      "max_turns": 20,
+      "toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "toolsets_csv": "file,terminal,skills",
+      "hermes_home": "/data/hermes/profiles/pcqaengineer",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/qa/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/qa/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+      "skills": {
+        "primary": [
+          "pw"
+        ],
+        "specialist": [
+          "pw-generate",
+          "pw-review",
+          "senior-qa"
+        ],
+        "on_demand": [
+          "pw-fix",
+          "pw-coverage",
+          "pw-report"
+        ],
+        "reference_only": [],
+        "experimental": [],
+        "disabled_bundled": []
+      }
+    },
+    "security_lead": {
+      "index": 7,
+      "agent_dir": "security-lead",
+      "role_slug": "security_lead",
+      "profile_id": "pcsecuritylead",
+      "name": "Security Lead",
+      "handle": "@security_lead",
+      "role": "security",
+      "title": "Defensive Security Architecture Lead",
+      "department": "Cybersecurity",
+      "reports_to_slug": "ceo_agent",
+      "wave": 2,
+      "default_activation": "STANDBY",
+      "budget_monthly_cents": 1500,
+      "timeout_sec": 180,
+      "max_turns": 15,
+      "toolsets": [
+        "file",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "skills"
+      ],
+      "toolsets_csv": "file,skills",
+      "hermes_home": "/data/hermes/profiles/pcsecuritylead",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/security-lead/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/security-lead/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+      "skills": {
+        "primary": [
+          "ciso-advisor"
+        ],
+        "specialist": [],
+        "on_demand": [],
+        "reference_only": [
+          "threat-model"
+        ],
+        "experimental": [],
+        "disabled_bundled": []
+      }
+    },
+    "security_reviewer": {
+      "index": 8,
+      "agent_dir": "security-reviewer",
+      "role_slug": "security_reviewer",
+      "profile_id": "pcsecurityreviewer",
+      "name": "Security Reviewer",
+      "handle": "@security",
+      "role": "security",
+      "title": "Defensive Code & Findings Security Reviewer",
+      "department": "Cybersecurity",
+      "reports_to_slug": "ceo_agent",
+      "wave": 1,
+      "default_activation": "ACTIVE",
+      "budget_monthly_cents": 2000,
+      "timeout_sec": 180,
+      "max_turns": 15,
+      "toolsets": [
+        "file",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "skills"
+      ],
+      "toolsets_csv": "file,skills",
+      "hermes_home": "/data/hermes/profiles/pcsecurityreviewer",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/security-reviewer/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/security-reviewer/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+      "skills": {
+        "primary": [
+          "security-audit"
+        ],
+        "specialist": [
+          "senior-security"
+        ],
+        "on_demand": [],
+        "reference_only": [
+          "secondsky-cybersecurity-ref"
+        ],
+        "experimental": [],
+        "disabled_bundled": []
+      }
+    },
+    "findings_analyst": {
+      "index": 9,
+      "agent_dir": "findings",
+      "role_slug": "findings_analyst",
+      "profile_id": "pcfindingsanalyst",
+      "name": "Findings Analyst",
+      "handle": "@findings",
+      "role": "researcher",
+      "title": "Security Findings Triage & Deduplication Analyst",
+      "department": "SOC Triage",
+      "reports_to_slug": "security_lead",
+      "wave": 2,
+      "default_activation": "STANDBY",
+      "budget_monthly_cents": 1000,
+      "timeout_sec": 180,
+      "max_turns": 12,
+      "toolsets": [
+        "file",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "skills"
+      ],
+      "toolsets_csv": "file,skills",
+      "hermes_home": "/data/hermes/profiles/pcfindingsanalyst",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/findings/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/findings/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_REPORTS_ROOT:-/data/reports}",
+      "skills": {
+        "primary": [
+          "security-audit"
+        ],
+        "specialist": [],
+        "on_demand": [],
+        "reference_only": [
+          "anthropic-triage"
+        ],
+        "experimental": [
+          "cve-triage"
+        ],
+        "disabled_bundled": []
+      }
+    },
+    "remediation_reviewer": {
+      "index": 10,
+      "agent_dir": "remediation",
+      "role_slug": "remediation_reviewer",
+      "profile_id": "pcremediationreviewer",
+      "name": "Remediation Reviewer",
+      "handle": "@remediation",
+      "role": "security",
+      "title": "Security Remediation & Regression Verifier",
+      "department": "Security Remediation",
+      "reports_to_slug": "security_lead",
+      "wave": 2,
+      "default_activation": "STANDBY",
+      "budget_monthly_cents": 1000,
+      "timeout_sec": 180,
+      "max_turns": 12,
+      "toolsets": [
+        "file",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "skills"
+      ],
+      "toolsets_csv": "file,skills",
+      "hermes_home": "/data/hermes/profiles/pcremediationreviewer",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/remediation/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/remediation/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+      "skills": {
+        "primary": [
+          "focused-fix"
+        ],
+        "specialist": [
+          "security-vuln-remediation"
+        ],
+        "on_demand": [],
+        "reference_only": [
+          "anthropic-patch"
+        ],
+        "experimental": [],
+        "disabled_bundled": []
+      }
+    },
+    "compliance_reporter": {
+      "index": 11,
+      "agent_dir": "compliance",
+      "role_slug": "compliance_reporter",
+      "profile_id": "pccompliancereporter",
+      "name": "Report & Compliance Agent",
+      "handle": "@compliance",
+      "role": "pm",
+      "title": "Audit Evidence & Acceptance Compliance Specialist",
+      "department": "Audit & Governance",
+      "reports_to_slug": "ceo_agent",
+      "wave": 2,
+      "default_activation": "STANDBY",
+      "budget_monthly_cents": 1000,
+      "timeout_sec": 180,
+      "max_turns": 12,
+      "toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "allowed_toolsets": [
+        "file",
+        "terminal",
+        "skills"
+      ],
+      "toolsets_csv": "file,terminal,skills",
+      "hermes_home": "/data/hermes/profiles/pccompliancereporter",
+      "instructions_file": "${ALLINAGENT_ROOT}/agents/compliance/AGENTS.md",
+      "soul_file": "${ALLINAGENT_ROOT}/agents/compliance/SOUL.md",
+      "authorized_workspace": "${ALLINAGENT_REPORTS_ROOT:-/data/reports}",
+      "skills": {
+        "primary": [
+          "compliance-os"
+        ],
+        "specialist": [
+          "docx",
+          "pdf"
+        ],
+        "on_demand": [],
+        "reference_only": [],
+        "experimental": [],
+        "disabled_bundled": [
+          "productivity/pdf"
+        ]
+      }
+    }
+  }
+}

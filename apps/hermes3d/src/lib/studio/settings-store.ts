@@ -1,0 +1,264 @@
+import fs from "node:fs";
+import path from "node:path";
+
+import { resolveStateDir } from "@/lib/hermes/paths";
+import {
+  defaultStudioSettings,
+  mergeStudioSettings,
+  normalizeStudioSettings,
+  type StudioGatewayAdapterType,
+  type StudioGatewayProfile,
+  type StudioGatewaySettings,
+  type StudioSettings,
+  type StudioSettingsPatch,
+} from "@/lib/studio/settings";
+
+// Studio settings are intentionally stored as a local JSON file for a single-user workflow.
+// That includes gateway connection details, so treat the state directory as plaintext secret
+// storage and document any changes to this threat model in README.md and SECURITY.md.
+const SETTINGS_DIRNAME = "hermes3d";
+const SETTINGS_FILENAME = "settings.json";
+const HERMES_CONFIG_FILENAME = "hermes.json";
+const DEFAULT_LOCAL_GATEWAY_PORT = 18789;
+
+export const resolveStudioSettingsPath = () =>
+  path.join(resolveStateDir(), SETTINGS_DIRNAME, SETTINGS_FILENAME);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value && typeof value === "object");
+
+const buildGatewaySettings = (params: {
+  adapterType: StudioGatewayAdapterType;
+  url: string;
+  token?: string;
+  profiles?: Partial<Record<StudioGatewayAdapterType, StudioGatewayProfile>>;
+}): StudioGatewaySettings => ({
+  url: params.url,
+  token: params.token ?? "",
+  adapterType: params.adapterType,
+  ...(params.profiles ? { profiles: params.profiles } : {}),
+});
+
+const buildLocalProfile = (url: string, token = ""): StudioGatewayProfile => ({ url, token });
+
+const readHermesGatewayDefaults = (): StudioGatewaySettings | null => {
+  try {
+    const configPath = path.join(resolveStateDir(), HERMES_CONFIG_FILENAME);
+    if (!fs.existsSync(configPath)) return null;
+    const raw = fs.readFileSync(configPath, "utf8");
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isRecord(parsed)) return null;
+    const gateway = isRecord(parsed.gateway) ? parsed.gateway : null;
+    if (!gateway) return null;
+    const auth = isRecord(gateway.auth) ? gateway.auth : null;
+    const token = typeof auth?.token === "string" ? auth.token.trim() : "";
+    const port = typeof gateway.port === "number" && Number.isFinite(gateway.port) ? gateway.port : null;
+    if (!token) return null;
+    const url = port ? `ws://localhost:${port}` : `ws://localhost:${DEFAULT_LOCAL_GATEWAY_PORT}`;
+    if (!url) return null;
+    return buildGatewaySettings({
+      adapterType: "hermes",
+      url,
+      token,
+      profiles: {
+        hermes: buildLocalProfile(url, token),
+      },
+    });
+  } catch {
+    return null;
+  }
+};
+
+const normalizeAdapterType = (value: string | undefined): StudioGatewayAdapterType | null => {
+  const normalized = value?.trim().toLowerCase();
+  if (
+    normalized === "hermes" ||
+    normalized === "hermes-agent" ||
+    normalized === "demo" ||
+    normalized === "local" ||
+    normalized === "hermes3d" ||
+    normalized === "custom"
+  ) {
+    return normalized;
+  }
+  return null;
+};
+
+const readPortBasedGatewayProfile = (
+  adapterType: Extract<StudioGatewayAdapterType, "hermes" | "demo">,
+  envKey: "HERMES_ADAPTER_PORT" | "DEMO_ADAPTER_PORT"
+): StudioGatewayProfile | null => {
+  const rawPort = process.env[envKey]?.trim();
+  if (!rawPort) return null;
+  const port = Number.parseInt(rawPort, 10);
+  if (!Number.isFinite(port) || port <= 0) return null;
+  return buildLocalProfile(`ws://localhost:${port}`);
+};
+
+const normalizeBridgeGatewayWsUrl = (raw: string | undefined): string => {
+  const trimmed = raw?.trim() ?? "";
+  if (!trimmed) return "";
+  const wsCandidate = trimmed.replace(/^http/i, "ws");
+  try {
+    const parsed = new URL(wsCandidate);
+    if (!parsed.pathname || parsed.pathname === "/") {
+      parsed.pathname = "/ws";
+    }
+    return parsed.toString().replace(/\/$/, "");
+  } catch {
+    return wsCandidate;
+  }
+};
+
+const isStaleLoopbackBridgeUrl = (url: string | undefined): boolean => {
+  const trimmed = url?.trim() ?? "";
+  if (!trimmed) return false;
+  try {
+    const parsed = new URL(trimmed);
+    const host = parsed.hostname.toLowerCase();
+    return (host === "127.0.0.1" || host === "localhost" || host === "::1") && parsed.port === "3210";
+  } catch {
+    return /^wss?:\/\/(?:127\.0\.0\.1|localhost):3210(?:\/|$)/i.test(trimmed);
+  }
+};
+
+const buildEnvGatewayDefaults = (): StudioGatewaySettings | null => {
+  const envUrl =
+    process.env.HERMES3D_GATEWAY_URL?.trim() ||
+    normalizeBridgeGatewayWsUrl(process.env.OFFICE_BRIDGE_WS_URL) ||
+    normalizeBridgeGatewayWsUrl(process.env.OFFICE_BRIDGE_HTTP_URL) ||
+    undefined;
+  const envToken =
+    process.env.OFFICE_BRIDGE_TOKEN?.trim() ||
+    process.env.HERMES3D_GATEWAY_TOKEN?.trim() ||
+    "";
+  const envAdapterType =
+    normalizeAdapterType(process.env.HERMES3D_GATEWAY_ADAPTER_TYPE) ?? "hermes";
+
+  const hermesProfile = readPortBasedGatewayProfile("hermes", "HERMES_ADAPTER_PORT");
+  const demoProfile = readPortBasedGatewayProfile("demo", "DEMO_ADAPTER_PORT");
+
+  const profiles: Partial<Record<StudioGatewayAdapterType, StudioGatewayProfile>> = {};
+  if (hermesProfile) profiles.hermes = hermesProfile;
+  if (demoProfile) profiles.demo = demoProfile;
+
+  if (envUrl) {
+    profiles[envAdapterType] = buildLocalProfile(envUrl, envToken);
+    return buildGatewaySettings({
+      adapterType: envAdapterType,
+      url: envUrl,
+      token: envToken,
+      profiles,
+    });
+  }
+
+  const fallbackProfile = profiles.hermes ?? profiles.demo ?? null;
+  if (!fallbackProfile) return null;
+  const fallbackAdapterType = profiles.hermes ? "hermes" : "demo";
+  return buildGatewaySettings({
+    adapterType: fallbackAdapterType,
+    url: fallbackProfile.url,
+    token: fallbackProfile.token,
+    profiles,
+  });
+};
+
+const mergeGatewayProfiles = (
+  base: StudioGatewaySettings,
+  extra: StudioGatewaySettings | null
+): StudioGatewaySettings => {
+  if (!extra?.profiles) {
+    return base;
+  }
+  const mergedProfiles: Partial<Record<StudioGatewayAdapterType, StudioGatewayProfile>> = {
+    ...(base.profiles ?? {}),
+  };
+  for (const [adapterType, profile] of Object.entries(extra.profiles) as Array<
+    [StudioGatewayAdapterType, StudioGatewayProfile | undefined]
+  >) {
+    if (!profile || mergedProfiles[adapterType]) {
+      continue;
+    }
+    mergedProfiles[adapterType] = profile;
+  }
+  return {
+    ...base,
+    profiles: mergedProfiles,
+  };
+};
+
+export const loadLocalGatewayDefaults = (): StudioGatewaySettings | null => {
+  const fromFile = readHermesGatewayDefaults();
+  const fromEnv = buildEnvGatewayDefaults();
+  if (fromEnv) {
+    return mergeGatewayProfiles(fromEnv, fromFile);
+  }
+  if (fromFile) {
+    return fromFile;
+  }
+  // No local defaults exist in either source.
+  return null;
+};
+
+export const loadStudioSettings = (): StudioSettings => {
+  const settingsPath = resolveStudioSettingsPath();
+  if (!fs.existsSync(settingsPath)) {
+    const defaults = defaultStudioSettings();
+    const gateway = loadLocalGatewayDefaults();
+    return gateway ? { ...defaults, gateway } : defaults;
+  }
+  const raw = fs.readFileSync(settingsPath, "utf8");
+  const parsed = JSON.parse(raw) as unknown;
+  const settings = normalizeStudioSettings(parsed);
+  const envBridgeUrl =
+    process.env.HERMES3D_GATEWAY_URL?.trim() ||
+    normalizeBridgeGatewayWsUrl(process.env.OFFICE_BRIDGE_WS_URL) ||
+    normalizeBridgeGatewayWsUrl(process.env.OFFICE_BRIDGE_HTTP_URL);
+  const currentUrl = settings.gateway?.url?.trim() ?? "";
+  const effectiveUrl =
+    envBridgeUrl && (!currentUrl || isStaleLoopbackBridgeUrl(currentUrl))
+      ? envBridgeUrl
+      : currentUrl;
+
+  if (!settings.gateway?.token) {
+    const gateway = loadLocalGatewayDefaults();
+    if (gateway) {
+      return {
+        ...settings,
+        gateway: effectiveUrl
+          ? {
+              url: effectiveUrl,
+              token: gateway.token,
+              adapterType: settings.gateway?.adapterType ?? gateway.adapterType,
+            }
+          : gateway,
+      };
+    }
+  }
+  if (effectiveUrl && effectiveUrl !== currentUrl && settings.gateway) {
+    return {
+      ...settings,
+      gateway: {
+        ...settings.gateway,
+        url: effectiveUrl,
+      },
+    };
+  }
+  return settings;
+};
+
+export const saveStudioSettings = (next: StudioSettings) => {
+  const settingsPath = resolveStudioSettingsPath();
+  const dir = path.dirname(settingsPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  fs.writeFileSync(settingsPath, JSON.stringify(next, null, 2), "utf8");
+};
+
+export const applyStudioSettingsPatch = (patch: StudioSettingsPatch): StudioSettings => {
+  const current = loadStudioSettings();
+  const next = mergeStudioSettings(current, patch);
+  saveStudioSettings(next);
+  return next;
+};

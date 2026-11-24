@@ -1,0 +1,44 @@
+{
+  "index": 1,
+  "agent_dir": "ceo",
+  "role_slug": "ceo_agent",
+  "profile_id": "pcceoagent",
+  "name": "CEO Agent",
+  "handle": "@ceo",
+  "role": "ceo",
+  "title": "Chief Executive Officer \u2014 Planning & Delegation",
+  "department": "Executive",
+  "reports_to_slug": null,
+  "wave": 1,
+  "default_activation": "ACTIVE",
+  "budget_monthly_cents": 2500,
+  "timeout_sec": 240,
+  "max_turns": 20,
+  "toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "terminal",
+    "skills"
+  ],
+  "toolsets_csv": "file,terminal,skills",
+  "hermes_home": "/data/hermes/profiles/pcceoagent",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/ceo/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/ceo/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+  "skills": {
+    "primary": [
+      "ceo-advisor"
+    ],
+    "specialist": [
+      "c-level-skills"
+    ],
+    "on_demand": [],
+    "reference_only": [],
+    "experimental": [],
+    "disabled_bundled": []
+  }
+}

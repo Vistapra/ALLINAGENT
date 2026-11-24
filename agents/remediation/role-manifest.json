@@ -1,0 +1,44 @@
+{
+  "index": 10,
+  "agent_dir": "remediation",
+  "role_slug": "remediation_reviewer",
+  "profile_id": "pcremediationreviewer",
+  "name": "Remediation Reviewer",
+  "handle": "@remediation",
+  "role": "security",
+  "title": "Security Remediation & Regression Verifier",
+  "department": "Security Remediation",
+  "reports_to_slug": "security_lead",
+  "wave": 2,
+  "default_activation": "STANDBY",
+  "budget_monthly_cents": 1000,
+  "timeout_sec": 180,
+  "max_turns": 12,
+  "toolsets": [
+    "file",
+    "skills"
+  ],
+  "allowed_toolsets": [
+    "file",
+    "skills"
+  ],
+  "toolsets_csv": "file,skills",
+  "hermes_home": "/data/hermes/profiles/pcremediationreviewer",
+  "instructions_file": "${ALLINAGENT_ROOT}/agents/remediation/AGENTS.md",
+  "soul_file": "${ALLINAGENT_ROOT}/agents/remediation/SOUL.md",
+  "authorized_workspace": "${ALLINAGENT_WORKSPACE_ROOT:-/data/workspaces}",
+  "skills": {
+    "primary": [
+      "focused-fix"
+    ],
+    "specialist": [
+      "security-vuln-remediation"
+    ],
+    "on_demand": [],
+    "reference_only": [
+      "anthropic-patch"
+    ],
+    "experimental": [],
+    "disabled_bundled": []
+  }
+}
