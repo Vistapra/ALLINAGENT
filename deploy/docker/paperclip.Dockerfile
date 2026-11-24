@@ -55,7 +55,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     NODE_ENV=production \
-    NODE_OPTIONS="--max-old-space-size=300" \
+    NODE_OPTIONS="--max-old-space-size=480" \
     MALLOC_ARENA_MAX=2 \
     ALLINAGENT_DOCKER=1 \
     ALLINAGENT_ROOT=/opt/allinagent \
@@ -93,7 +93,7 @@ WORKDIR /opt/paperclip
 USER node
 EXPOSE 3100
 
-HEALTHCHECK --interval=20s --timeout=5s --start-period=35s --retries=3 \
+HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=5 \
   CMD curl -fsS http://127.0.0.1:3100/api/health || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--"]

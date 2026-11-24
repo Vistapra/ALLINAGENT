@@ -194,10 +194,10 @@ services:
       - ${ALLINAGENT_WORKSPACES_DIR:-./data/workspaces}:/var/lib/allinagent/workspaces
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3100/api/health || exit 1"]
-      interval: 20s
+      interval: 15s
       timeout: 5s
-      start_period: 35s
-      retries: 3
+      start_period: 60s
+      retries: 5
 
   office-bridge:
     image: ${ALLINAGENT_REGISTRY:-ghcr.io}/${ALLINAGENT_IMAGE_NAMESPACE:-vistapra}/allinagent-office-bridge:${ALLINAGENT_VERSION:-latest}

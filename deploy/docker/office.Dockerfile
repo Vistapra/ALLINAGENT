@@ -41,7 +41,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 ENV DEBIAN_FRONTEND=noninteractive \
     NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    NODE_OPTIONS="--max-old-space-size=128" \
+    NODE_OPTIONS="--max-old-space-size=180" \
     MALLOC_ARENA_MAX=2 \
     ALLINAGENT_DOCKER=1 \
     ALLINAGENT_ROOT=/opt/allinagent \

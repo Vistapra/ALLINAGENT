@@ -3,8 +3,8 @@
 # Usage: `docker compose -f compose.yaml -f compose.production.yaml up -d`
 #
 # Resource Budget Invariants:
-#   - Core 5 always-on `mem_limit` sum : 224 + 416 + 384 + 160 + 224 = 1,408 MiB
-#   - VulnClaw `mem_limit`             : 128 MiB -> Hard Sum = 1,536 MiB (1.50 GiB)
+#   - Core 5 always-on `mem_limit` sum : 160 + 608 + 304 + 144 + 240 = 1,456 MiB
+#   - VulnClaw `mem_limit`             : 80 MiB (idle RSS ~26 MiB) -> Hard Sum = 1,536 MiB
 #   - Zero public ports; loopback-only : 127.0.0.1:8200, 127.0.0.1:8201, 127.0.0.1:8202
 #   - Zero host ports on `postgres`, `hermes` (:8650), and `vulnclaw` (:8660)
 #   - Persistent bind-mounts under `${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}`
@@ -15,8 +15,8 @@ name: allinagent
 
 x-production-resource-budget:
   target_host_profile: "2 vCPU / 8 GiB RAM Multi-Tenant Linux VPS"
-  core_always_on_limit_mib: 1408
-  vulnclaw_limit_mib: 128
+  core_always_on_limit_mib: 1456
+  vulnclaw_limit_mib: 80
   steady_concurrent_ceiling_mib: 1536
   heavy_worker_concurrency: 1
 
@@ -24,9 +24,9 @@ services:
   postgres:
     pull_policy: missing
     restart: unless-stopped
-    mem_reservation: 96m
-    mem_limit: 224m
-    memswap_limit: 224m
+    mem_reservation: 80m
+    mem_limit: 160m
+    memswap_limit: 160m
     cpus: 0.35
     pids_limit: 128
     volumes:
@@ -41,13 +41,13 @@ services:
   paperclip:
     pull_policy: missing
     restart: unless-stopped
-    mem_reservation: 160m
-    mem_limit: 416m
-    memswap_limit: 416m
+    mem_reservation: 192m
+    mem_limit: 608m
+    memswap_limit: 608m
     cpus: 0.65
     pids_limit: 192
     environment:
-      NODE_OPTIONS: "--max-old-space-size=300"
+      NODE_OPTIONS: "--max-old-space-size=480"
       MALLOC_ARENA_MAX: "2"
       ALLINAGENT_WORKSPACE_ROOT: "/var/lib/allinagent/workspaces"
       ALLINAGENT_REPORTS_ROOT: "/var/lib/allinagent/reports"
@@ -65,9 +65,9 @@ services:
   hermes:
     pull_policy: missing
     restart: unless-stopped
-    mem_reservation: 128m
-    mem_limit: 384m
-    memswap_limit: 384m
+    mem_reservation: 112m
+    mem_limit: 304m
+    memswap_limit: 304m
     cpus: 0.75
     pids_limit: 192
     environment:
@@ -88,13 +88,13 @@ services:
   office-bridge:
     pull_policy: missing
     restart: unless-stopped
-    mem_reservation: 64m
-    mem_limit: 160m
-    memswap_limit: 160m
+    mem_reservation: 56m
+    mem_limit: 144m
+    memswap_limit: 144m
     cpus: 0.35
     pids_limit: 128
     environment:
-      NODE_OPTIONS: "--max-old-space-size=112"
+      NODE_OPTIONS: "--max-old-space-size=104"
       MALLOC_ARENA_MAX: "2"
     volumes:
       - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/office-data:/var/lib/allinagent/office-data
@@ -110,13 +110,13 @@ services:
   office:
     pull_policy: missing
     restart: unless-stopped
-    mem_reservation: 80m
-    mem_limit: 224m
-    memswap_limit: 224m
+    mem_reservation: 88m
+    mem_limit: 240m
+    memswap_limit: 240m
     cpus: 0.40
     pids_limit: 128
     environment:
-      NODE_OPTIONS: "--max-old-space-size=128"
+      NODE_OPTIONS: "--max-old-space-size=180"
       MALLOC_ARENA_MAX: "2"
     volumes:
       - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/studio-state:/var/lib/allinagent/studio-state
@@ -131,9 +131,9 @@ services:
   vulnclaw:
     pull_policy: missing
     restart: unless-stopped
-    mem_reservation: 64m
-    mem_limit: 128m
-    memswap_limit: 128m
+    mem_reservation: 40m
+    mem_limit: 80m
+    memswap_limit: 80m
     cpus: 0.50
     pids_limit: 64
     read_only: true
