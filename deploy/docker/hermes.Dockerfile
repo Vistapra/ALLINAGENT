@@ -101,16 +101,17 @@ RUN set -eux; \
     cd /opt/allinagent/vendor/hermes-agent; \
     /opt/hermes-venv/bin/python -c 'from pathlib import Path; import re; p = Path("pyproject.toml"); t = p.read_text(encoding="utf-8"); t = re.sub(r"(?i)^\s*\"?(?:pymupdf|marker-pdf)[^\"\n]*\"?,?\s*$", "", t, flags=re.M); p.write_text(t, encoding="utf-8")'; \
     printf 'pynacl>=1.6,<1.7\ncryptography==50.0.2\nPillow==13.0.0\n' > /tmp/hermes-overrides.txt; \
-    if ! uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt "/opt/allinagent/vendor/hermes-agent[messaging,documents,documents-pdf]"; then \
-      uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt "/opt/allinagent/vendor/hermes-agent"; \
+    if ! uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt \
+      -e "/opt/allinagent/vendor/hermes-agent[messaging,documents,documents-pdf]" pyyaml; then \
+      uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt \
+        -e "/opt/allinagent/vendor/hermes-agent" \
+        python-telegram-bot \
+        python-docx \
+        reportlab \
+        pypdf \
+        pdfplumber \
+        pyyaml; \
     fi; \
-    uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt \
-      python-telegram-bot \
-      python-docx \
-      reportlab \
-      pypdf \
-      pdfplumber \
-      pyyaml; \
     if [ -f /opt/allinagent/apps/control-center/requirements.txt ]; then \
       uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt \
         -r /opt/allinagent/apps/control-center/requirements.txt; \
