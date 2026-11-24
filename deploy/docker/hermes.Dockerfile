@@ -18,20 +18,23 @@ ENV DEBIAN_FRONTEND=noninteractive \
     UV_NO_CACHE=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    CC=gcc \
+    CXX=g++
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential \
       ca-certificates \
       curl \
       git \
       patch \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=ghcr.io/astral-sh/uv:0.6.6 /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.5 /uv /uvx /usr/local/bin/
 
-# Install standalone CPython 3.14 and create isolated virtual environment
-RUN uv python install 3.14 && \
-    uv venv --python 3.14 /opt/hermes-venv
+# Install standalone CPython 3.14.9 and create isolated virtual environment
+RUN uv python install 3.14.9 && \
+    uv venv --python 3.14.9 /opt/hermes-venv
 
 WORKDIR /opt/allinagent
 
@@ -97,17 +100,19 @@ RUN set -eux; \
 RUN set -eux; \
     cd /opt/allinagent/vendor/hermes-agent; \
     /opt/hermes-venv/bin/python -c 'from pathlib import Path; import re; p = Path("pyproject.toml"); t = p.read_text(encoding="utf-8"); t = re.sub(r"(?i)^\s*\"?(?:pymupdf|marker-pdf)[^\"\n]*\"?,?\s*$", "", t, flags=re.M); p.write_text(t, encoding="utf-8")'; \
-    if ! uv pip install --python /opt/hermes-venv/bin/python --no-cache "/opt/allinagent/vendor/hermes-agent[messaging,documents,documents-pdf]"; then \
-      uv pip install --python /opt/hermes-venv/bin/python --no-cache "/opt/allinagent/vendor/hermes-agent"; \
+    printf 'pynacl>=1.6,<1.7\ncryptography==50.0.2\nPillow==13.0.0\n' > /tmp/hermes-overrides.txt; \
+    if ! uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt "/opt/allinagent/vendor/hermes-agent[messaging,documents,documents-pdf]"; then \
+      uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt "/opt/allinagent/vendor/hermes-agent"; \
     fi; \
-    uv pip install --python /opt/hermes-venv/bin/python --no-cache \
+    uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt \
       python-telegram-bot \
       python-docx \
       reportlab \
       pypdf \
-      pdfplumber; \
+      pdfplumber \
+      pyyaml; \
     if [ -f /opt/allinagent/apps/control-center/requirements.txt ]; then \
-      uv pip install --python /opt/hermes-venv/bin/python --no-cache \
+      uv pip install --python /opt/hermes-venv/bin/python --no-cache --overrides /tmp/hermes-overrides.txt \
         -r /opt/allinagent/apps/control-center/requirements.txt; \
     fi; \
     /opt/hermes-venv/bin/python -c 'import importlib.metadata as md; pkgs = {d.metadata["Name"].lower() for d in md.distributions() if d.metadata.get("Name")}; forbidden = pkgs & {"pymupdf", "marker-pdf"}; assert not forbidden, f"Forbidden copyleft packages detected: {forbidden}"; required = {"python-telegram-bot", "python-docx", "reportlab", "pypdf", "pdfplumber"}; missing = required - pkgs; assert not missing, f"Missing required packages: {missing}"'; \
