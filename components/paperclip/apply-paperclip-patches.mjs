@@ -666,6 +666,27 @@ export function patchSharedNetworkBindJs(rawSource) {
   return { status: "patched", content: content.replace(targetCheck, () => replacementCheck) };
 }
 
+export function patchServerIndexLocalTrustedBindJs(rawSource) {
+  const content = normalizeLf(rawSource);
+  const marker = "ALLINAGENT_PATCH_SERVER_DOCKER_LOCAL_TRUSTED_BIND_V1";
+  if (content.includes(marker)) {
+    return { status: "already_patched", content };
+  }
+  const targetRe =
+    /[ \t]*if \(config\.deploymentMode === "local_trusted" && !isLoopbackHost\(config\.host\)\) \{\n[ \t]*throw new Error\(`local_trusted mode requires loopback host binding \(received: \$\{config\.host\}\)\. `\s*\+\n[ \t]*"Use authenticated mode for non-loopback deployments\."\);\n[ \t]*\}/;
+  if (!targetRe.test(content)) {
+    throw new Error("[server/dist/index.js] Could not locate local_trusted loopback host binding check to patch.");
+  }
+  const replacementBlock = [
+    `    // ${marker}: allow container 0.0.0.0 listener when isolated behind host 127.0.0.1 port mapping`,
+    '    if (config.deploymentMode === "local_trusted" && !isLoopbackHost(config.host) && process.env.ALLINAGENT_DOCKER !== "1") {',
+    '        throw new Error(`local_trusted mode requires loopback host binding (received: ${config.host}). ` +',
+    '            "Use authenticated mode for non-loopback deployments.");',
+    "    }",
+  ].join("\n");
+  return { status: "patched", content: content.replace(targetRe, () => replacementBlock) };
+}
+
 // ---------------------------------------------------------------------------
 // Orchestrator
 // ---------------------------------------------------------------------------
@@ -780,6 +801,22 @@ export async function applyPaperclipPatches(options = {}) {
     });
   }
 
+  const serverIndexPath = path.join(nodeModulesDir, "@paperclipai", "server", "dist", "index.js");
+  if (fs.existsSync(serverIndexPath) && !verifyOnly) {
+    const beforeSrv = normalizeLf(await fsp.readFile(serverIndexPath, "utf8"));
+    const { status, content: afterSrv } = patchServerIndexLocalTrustedBindJs(beforeSrv);
+    if (!dryRun && status === "patched") {
+      await fsp.writeFile(serverIndexPath, afterSrv, "utf8");
+    }
+    results.push({
+      id: "server-docker-local-trusted-bind",
+      relPath: "@paperclipai/server/dist/index.js",
+      status: dryRun && status === "patched" ? "would_patch" : status,
+      beforeSha256: sha256(beforeSrv),
+      afterSha256: sha256(afterSrv),
+    });
+  }
+
   return {
     nodeModulesDir,
     dryRun,
@@ -799,6 +836,7 @@ function parseCliArgs(argv) {
     else if (arg.startsWith("--node-modules=")) opts.nodeModulesDir = arg.slice("--node-modules=".length);
     else if (arg === "--app-dir" && argv[i + 1]) opts.appDir = argv[++i];
     else if (arg.startsWith("--app-dir=")) opts.appDir = arg.slice("--app-dir=".length);
+    else if (!arg.startsWith("-") && !opts.appDir && !opts.nodeModulesDir) opts.appDir = arg;
   }
   return opts;
 }
