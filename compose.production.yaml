@@ -8,6 +8,7 @@
 #   - Zero public ports; loopback-only : 127.0.0.1:8200, 127.0.0.1:8201, 127.0.0.1:8202
 #   - Zero host ports on `postgres`, `hermes` (:8650), and `vulnclaw` (:8660)
 #   - Persistent bind-mounts under `${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}`
+#   - `security_opt`, loopback `ports`, and `networks` inherited cleanly from `compose.yaml`
 # ==============================================================================
 
 name: allinagent
@@ -28,8 +29,6 @@ services:
     memswap_limit: 224m
     cpus: 0.35
     pids_limit: 128
-    security_opt:
-      - no-new-privileges:true
     volumes:
       - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/postgres:/var/lib/postgresql/data
       - ./deploy/docker/postgresql-lowmem.conf:/etc/postgresql/postgresql.conf:ro
@@ -47,10 +46,6 @@ services:
     memswap_limit: 416m
     cpus: 0.65
     pids_limit: 192
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "127.0.0.1:${PAPERCLIP_PORT:-8201}:3100"
     environment:
       NODE_OPTIONS: "--max-old-space-size=300"
       MALLOC_ARENA_MAX: "2"
@@ -75,8 +70,6 @@ services:
     memswap_limit: 384m
     cpus: 0.75
     pids_limit: 192
-    security_opt:
-      - no-new-privileges:true
     environment:
       HEAVY_WORKER_CONCURRENCY: "1"
       PYTHONMALLOC: "malloc"
@@ -100,10 +93,6 @@ services:
     memswap_limit: 160m
     cpus: 0.35
     pids_limit: 128
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "127.0.0.1:${OFFICE_BRIDGE_PORT:-8202}:3210"
     environment:
       NODE_OPTIONS: "--max-old-space-size=112"
       MALLOC_ARENA_MAX: "2"
@@ -126,10 +115,6 @@ services:
     memswap_limit: 224m
     cpus: 0.40
     pids_limit: 128
-    security_opt:
-      - no-new-privileges:true
-    ports:
-      - "127.0.0.1:${OFFICE_PORT:-8200}:3200"
     environment:
       NODE_OPTIONS: "--max-old-space-size=128"
       MALLOC_ARENA_MAX: "2"
@@ -154,8 +139,6 @@ services:
     read_only: true
     cap_drop:
       - ALL
-    security_opt:
-      - no-new-privileges:true
     volumes:
       - ${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}/vulnclaw:/var/lib/vulnclaw
       - ${ALLINAGENT_WORKSPACES_DIR:-/opt/allinagent/data/workspaces}:/workspaces:ro
@@ -165,19 +148,3 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-networks:
-  allinagent_edge:
-    name: allinagent_edge
-    driver: bridge
-    internal: false
-    ipam:
-      config:
-        - subnet: 192.168.240.0/24
-  allinagent_data:
-    name: allinagent_data
-    driver: bridge
-    internal: true
-    ipam:
-      config:
-        - subnet: 192.168.241.0/24
