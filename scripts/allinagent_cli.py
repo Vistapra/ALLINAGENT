@@ -389,6 +389,7 @@ def scaffold_data_directories(data_dir: Path, workspaces_dir: Path) -> None:
         (data_dir / "hermes" / "profiles", 10001, 10001, 0o750),
         (data_dir / "reports", 10001, 1000, 0o775),
         (data_dir / "office-data", 1000, 1000, 0o750),
+        (data_dir / "studio-state", 1000, 1000, 0o750),
         (data_dir / "studio-state" / "hermes3d", 1000, 1000, 0o750),
         (data_dir / "vulnclaw", 10002, 10002, 0o750),
         (data_dir / "secrets", 0, 0, 0o755),
@@ -401,6 +402,70 @@ def scaffold_data_directories(data_dir: Path, workspaces_dir: Path) -> None:
     for folder, uid, gid, mode in layout:
         folder.mkdir(parents=True, exist_ok=True)
         chown_if_root(folder, uid, gid, mode)
+
+
+def ensure_runtime_volume_ownership(data_dir: Path, workspaces_dir: Path) -> None:
+    """Ensure non-root container UIDs (70, 1000, 10001, 10002) own their bind-mounted host volumes."""
+    if os.name == "nt":
+        return
+    geteuid = getattr(os, "geteuid", None)
+    if callable(geteuid) and geteuid() == 0:
+        scaffold_data_directories(data_dir, workspaces_dir)
+        return
+
+    sh_script = (
+        "set -eu; "
+        'mkdir -p "$1/postgres" "$1/paperclip" "$1/hermes/profiles" "$1/reports" '
+        '"$1/office-data" "$1/studio-state/hermes3d" "$1/vulnclaw" "$1/secrets" '
+        '"$1/office-secrets" "$1/logs" "$2"; '
+        'chmod 0755 "$1" "$1/secrets"; '
+        'chown -R 70:70 "$1/postgres" && chmod 0700 "$1/postgres"; '
+        'chown -R 1000:1000 "$1/paperclip" "$1/office-data" "$1/studio-state" "$1/office-secrets" "$1/logs"; '
+        'chmod 0750 "$1/paperclip" "$1/office-data" "$1/studio-state" "$1/studio-state/hermes3d" "$1/office-secrets" "$1/logs"; '
+        'chown -R 10001:10001 "$1/hermes" && chmod 0750 "$1/hermes" "$1/hermes/profiles"; '
+        'chown -R 10002:10002 "$1/vulnclaw" && chmod 0750 "$1/vulnclaw"; '
+        'chown -R 10001:1000 "$1/reports" "$2" && chmod 0775 "$1/reports" "$2"; '
+        '[ ! -f "$1/secrets/office-bridge-auth.json" ] || (chown 1000:10001 "$1/secrets/office-bridge-auth.json" && chmod 0640 "$1/secrets/office-bridge-auth.json"); '
+        '[ ! -f "$1/office-secrets/office-bridge-auth.json" ] || (chown 1000:1000 "$1/office-secrets/office-bridge-auth.json" && chmod 0600 "$1/office-secrets/office-bridge-auth.json"); '
+        '[ ! -f "$1/secrets/paperclip-auth.env" ] || (chown 1000:1000 "$1/secrets/paperclip-auth.env" && chmod 0600 "$1/secrets/paperclip-auth.env"); '
+        '[ ! -f "$1/secrets/worker-llm.env" ] || (chown 10001:10001 "$1/secrets/worker-llm.env" && chmod 0600 "$1/secrets/worker-llm.env"); '
+        '[ ! -f "$1/studio-state/hermes3d/settings.json" ] || (chown 1000:1000 "$1/studio-state/hermes3d/settings.json" && chmod 0600 "$1/studio-state/hermes3d/settings.json"); '
+        '[ ! -f "$1/vulnclaw/config.yaml" ] || (chown 10002:10002 "$1/vulnclaw/config.yaml" && chmod 0640 "$1/vulnclaw/config.yaml")'
+    )
+    if shutil.which("sudo"):
+        sudo_res = subprocess.run(
+            ["sudo", "-n", "sh", "-c", sh_script, "sh", str(data_dir), str(workspaces_dir)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if sudo_res.returncode == 0:
+            return
+
+    if shutil.which("docker"):
+        subprocess.run(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--user",
+                "0:0",
+                "-v",
+                f"{data_dir}:/mnt/data",
+                "-v",
+                f"{workspaces_dir}:/mnt/ws",
+                UPSTREAM_PINS["postgres_image"],
+                "sh",
+                "-c",
+                sh_script,
+                "sh",
+                "/mnt/data",
+                "/mnt/ws",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
 
 
 def prompt_value(label: str, default: str, non_interactive: bool, secret: bool = False) -> str:
@@ -584,8 +649,8 @@ def provision_env_and_secrets(
         "allowedOwnerId": owner_tg_id,
     }
     serialized_ob_auth = json.dumps(ob_auth_payload, indent=2) + "\n"
-    write_secure_file(ob_auth_path, serialized_ob_auth, mode=0o600)
-    chown_if_root(ob_auth_path, 1000, 1000, 0o600)
+    write_secure_file(ob_auth_path, serialized_ob_auth, mode=0o640)
+    chown_if_root(ob_auth_path, 1000, 10001, 0o640)
     write_secure_file(office_only_auth_path, serialized_ob_auth, mode=0o600)
     chown_if_root(office_only_auth_path, 1000, 1000, 0o600)
 
@@ -1010,6 +1075,7 @@ def cmd_setup(args: argparse.Namespace) -> int:
         print("[3/6] Skipped image pull/build (`--skip-pull`).")
 
     print("[4/6] Starting PostgreSQL 16 (`allinagent_data` internal network)...")
+    ensure_runtime_volume_ownership(Path(provisioned["data_dir"]), Path(provisioned["workspaces_dir"]))
     run_cmd(build_compose_cmd(env_file, production, ["up", "-d", "postgres"]), check=True)
     for _ in range(30):
         pg_chk = run_cmd(
@@ -1061,16 +1127,19 @@ def cmd_up(args: argparse.Namespace) -> int:
     effective_env = resolve_effective_env(env_file)
     production = should_use_production_compose(args, effective_env)
     if not has_all_required_secrets(env_file):
-        provision_env_and_secrets(
+        provisioned_up = provision_env_and_secrets(
             env_file,
             non_interactive=True,
             production=production,
         )
+        data_dir = Path(provisioned_up["data_dir"]).resolve()
+        workspaces_dir = Path(provisioned_up["workspaces_dir"]).resolve()
         print(f"[ALLINAGENT] Auto-provisioned missing CSPRNG secrets (`0600`) in {env_file}")
     else:
         data_dir = resolve_data_dir(effective_env)
         workspaces_dir = Path(effective_env.get("ALLINAGENT_WORKSPACES_DIR") or str(data_dir / "workspaces")).resolve()
         scaffold_data_directories(data_dir, workspaces_dir)
+    ensure_runtime_volume_ownership(data_dir, workspaces_dir)
     extra = ["up", "-d", "--remove-orphans"]
     if args.build:
         pull_or_build_images(env_file, production, force_build=True)

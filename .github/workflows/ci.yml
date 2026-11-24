@@ -127,16 +127,9 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Ensure `pnpm` is installed
-        run: |
-          if ! command -v pnpm >/dev/null 2>&1; then
-            npm install -g pnpm@10
-          fi
-          pnpm --version
-
       - name: Verify `apps/office-bridge`
         working-directory: apps/office-bridge
-        run: npm ci && node --test tests/*.test.js
+        run: npm ci --workspaces=false && node --test tests/*.test.js
 
       - name: Verify `apps/hermes3d` TypeScript & Vitest suite
         working-directory: apps/hermes3d
@@ -147,7 +140,7 @@ jobs:
           node --check server/index.js
           node --check server/access-gate.js
           node --check next.config.mjs
-          pnpm install --frozen-lockfile=false && pnpm exec tsc --noEmit && pnpm exec vitest run
+          npm ci --workspaces=false && npx tsc --noEmit && npx vitest run
 
   docker-smoke-test:
     name: Multi-Stage Docker Build & Live Container Smoke Gate

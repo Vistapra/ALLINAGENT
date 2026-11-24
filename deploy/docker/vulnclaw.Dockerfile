@@ -13,7 +13,7 @@ ARG VULNCLAW_UPSTREAM_REPO=https://github.com/Netw0rkNoob/VulnClaw.git
 ARG VULNCLAW_UPSTREAM_SHA=0b34878f84b089b21fcf85ecd445315f14df0672
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PATH="/opt/vulnclaw-venv/bin:/usr/local/bin:/usr/bin:/bin" \
+    PATH="/opt/vulnclaw-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -57,7 +57,7 @@ LABEL org.opencontainers.image.source="https://github.com/Vistapra/ALLINAGENT"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PATH="/opt/vulnclaw-venv/bin:/usr/local/bin:/usr/bin:/bin" \
+    PATH="/opt/vulnclaw-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONMALLOC=malloc \
@@ -75,6 +75,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
+      passwd \
       tini \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10002 vulnclaw \

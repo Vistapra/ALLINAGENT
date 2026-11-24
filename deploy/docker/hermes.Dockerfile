@@ -123,7 +123,7 @@ LABEL org.opencontainers.image.source="https://github.com/Vistapra/ALLINAGENT"
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PATH="/opt/hermes-venv/bin:/usr/local/bin:/usr/bin:/bin" \
+    PATH="/opt/hermes-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONMALLOC=malloc \
@@ -146,6 +146,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
       git \
+      passwd \
       tini \
       tzdata \
     && rm -rf /var/lib/apt/lists/* \
