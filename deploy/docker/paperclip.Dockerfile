@@ -20,7 +20,7 @@ ENV NODE_ENV=production \
 WORKDIR /opt/paperclip
 
 RUN printf '{\n  "name": "allinagent-paperclip-runtime",\n  "private": true,\n  "version": "1.0.0"\n}\n' > package.json \
-    && npm install --omit=dev --no-optional "paperclipai@${PAPERCLIP_VERSION}" \
+    && (npm install --omit=dev "paperclipai@${PAPERCLIP_VERSION}" || npm install --omit=dev --ignore-scripts "paperclipai@${PAPERCLIP_VERSION}") \
     && npm cache clean --force \
     && rm -rf /root/.npm /tmp/*
 
