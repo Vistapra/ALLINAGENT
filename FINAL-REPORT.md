@@ -9,11 +9,11 @@
 
 ## 1. Executive Summary
 
-**ALLINAGENT** completes a 30-phase principal systems engineering transformation converting a multi-root workstation deployment (`<LEGACY_WINDOWS_WORKSPACE>`, **`11,126,312,521 B` / `10.36 GiB`** across `461,174` files and `25` host processes) into a clean, reproducible, cross-platform open-source distribution (**`< 15 MiB` Git repository**, **`> 99.8%` footprint reduction**) while preserving **100% of all 30 enterprise capabilities (`FEAT-01`..`FEAT-30`)**.
+**ALLINAGENT** completes a 30-phase principal systems engineering transformation converting a multi-root workstation deployment (`<LEGACY_WINDOWS_WORKSPACE>`, **`11,126,312,521 B` / `10.36 GiB`** across `461,174` files and `25` host processes) into a clean, reproducible, cross-platform open-source distribution (**`11.39 MiB` Git repository across `931` tracked files**, **`99.89%` footprint reduction**; `/opt/allinagent` runtime disk **`222 MiB`**) while preserving **100% of all 30 enterprise capabilities (`FEAT-01`..`FEAT-30`)**.
 
 Key empirical outcomes:
-1. **Zero Feature Regression (`30 / 30` Capabilities Verified):** Unites **Hermes Agent (`v0.23.3`)**, **Paperclip (`2026.1117.0`)**, **VulnClaw (`v0.4.1` defensive)**, **Hermes3D WebGL + 2D Pixel Office**, **Unified Office Bridge**, **59-Command Telegram CODEXE Control Center**, **11 Corporate AI Agents**, **33 SHA-Pinned Agent Skills**, and **PDF/DOCX Compliance Reporting**.
-2. **Constrained-VPS Memory Mastery (`<= 1,536 MiB` Hard Ceiling):** Enforces `memswap_limit == mem_limit` across all 6 containers (`~415 MiB` idle RSS, `<= 1,070 MiB` active RSS), leaving `>= 1.85 GiB` of untouched host RAM headroom on dense multi-tenant 8 GB servers.
+1. **Zero Feature Regression (`30 / 30` Capabilities & `113 / 113` Live Acceptance Checks Verified):** Unites **Hermes Agent (`v0.23.3`)**, **Paperclip (`2026.1117.0`)**, **VulnClaw (`v0.4.1` defensive)**, **Hermes3D WebGL + 2D Pixel Office**, **Unified Office Bridge**, **59-Command Telegram CODEXE Control Center**, **11 Corporate AI Agents**, **33 SHA-Pinned Agent Skills**, and **PDF/DOCX Compliance Reporting**.
+2. **Constrained-VPS Memory Mastery (`<= 1,536.00 MiB` Hard Ceiling):** Enforces `memswap_limit == mem_limit` across all 6 containers (`632.37 MiB` clean Track A install; `1,003.84–1,052.44 MiB` steady production; `1,068.36 MiB` active VulnClaw scan peak; `1,110.52 MiB` post-16-step Group E workflow), leaving `~3.0 GiB` of untouched host RAM headroom on dense multi-tenant 8 GiB servers.
 3. **Zero-Leak Public Supply Chain:** Verified `0` secrets, `0` hardcoded host paths, `0` copyleft violations, and `0` bundled Commons-Clause/unlicensed skills under `scripts/audit-public-release.py` and `scripts/generate-sbom.py` (`CycloneDX 1.5`).
 
 ---
@@ -49,9 +49,9 @@ Key empirical outcomes:
 | `PHASE-24` | Ubuntu Production Deployment | Provisioned `/opt/allinagent` bind-mount layout, UFW/`DOCKER-USER` compatibility & production runbooks | `PASS` |
 | `PHASE-25` | Domain, TLS 1.3 & HTTP/3 QUIC | Configured Host Nginx TLS 1.3 + WS upgrade + HTTP/3 QUIC (without `reuseport` collision) & SSH tunnel scripts | `PASS` |
 | `PHASE-26` | Autostart & Coordinated Updates | Configured `restart: unless-stopped`, `systemd` maintenance timers, `pg_dump` rotation & auto-rollback | `PASS` |
-| `PHASE-27` | Live Production Acceptance | Verified `Groups A–H` (`107` acceptance checkpoints + `tests/e2e/run_live_acceptance.py`) | `PASS` |
-| `PHASE-28` | Clean-Room Fresh Install Test | Verified independent Track A `git clone` $\rightarrow$ `./allinagent setup` $\rightarrow$ `6/6` healthy stack | `PASS` |
-| `PHASE-29` | Final Documentation & GA Release | Completed all `25` root documentation guides, `v1.0.0` release notes/changelog & final audit sign-off | `PASS` |
+| `PHASE-27` | Live Production Acceptance | Verified **`113 / 113` (`100% PASS`)** live checks (`A 10/10`, `B 11/11` `241,240` tokens, `C 17/17`, `D 17/17`, `E 16/16`, `F 10/10`, `G 16/16`, `H 10/10` + `6/6` coexistence) | `PASS` |
+| `PHASE-28` | Clean-Room Fresh Install Test | Verified independent Track A `git clone` (`11.39 MiB`) $\rightarrow$ `./allinagent --production setup` $\rightarrow$ `6/6` healthy stack (`632.37 MiB`) | `PASS` |
+| `PHASE-29` | Final Documentation & GA Release | Completed GA `v1.0.0` surgical runtime polish, 25-doc release suite, master `PASS` ledgers & final sign-off | `PASS` |
 
 ---
 
@@ -132,8 +132,10 @@ Key empirical outcomes:
 - **Defense-in-Depth Defaults:** Blank `.env.example` credentials; fail-closed `<OWNER_TELEGRAM_ID>` DM lock; loopback-only host bindings (`127.0.0.1:8200–8202`); air-gapped `allinagent_data` database network (`0` host ports); non-root `10001:10001` containers with `no-new-privileges:true`; `:ro` workspace + `cap_drop: ["ALL"]` on `vulnclaw`; and **zero `/var/run/docker.sock` exposure**.
 - **Comprehensive Automated Sign-Off:**
   - `tests/run_ci_suite.py`: **`78 / 78` checks PASSED** (`0` failures).
+  - `apps/office-bridge` (`node --test`): **`12 / 12` suites PASSED** (including `/screenshot-kantor` `800x460` `\x89PNG` card & `uac:pick:0` `200 OK`).
   - `apps/hermes3d` (`tsc --noEmit` + `vitest`): **`0` TS errors; `12 / 12` suites (`70 / 70` tests) PASSED**.
   - `integrations/{telegram,connected-device}` + `apps/control-center`: **`20` `unittest` cases + `49` self-checks PASSED**.
   - `tests/fixtures/synthetic-order-api`: **`13 / 13` differential security checks (`SYN-F01`..`SYN-F04`) PASSED**.
-  - `Phase 27` (`Groups A–H`) & `Phase 28` (`Track A` Clean-Room Install): **`PASS`**.
+  - `Phase 27` Live Production Acceptance: **`113 / 113` checks (`100% PASS` across `Groups A–H` + `6/6` multi-tenant coexistence; `241,240` real worker tokens, `0` cross-profile pollution, `0` HTTP `409 Conflict`, VulnClaw `9` $\rightarrow$ `0` findings, live `.pdf`/`.docx` Telegram delivery)**.
+  - `Phase 28` (`Track A` Clean-Room Fresh Installation): **`PASS` (`632.37 MiB` working set, `6 / 6` healthy)**.
   - `scripts/audit-public-release.py` & `scripts/generate-sbom.py --validate`: **`0` security/privacy/hygiene findings; valid CycloneDX `1.5` SBOM**.

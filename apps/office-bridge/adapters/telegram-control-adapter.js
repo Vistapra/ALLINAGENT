@@ -1111,7 +1111,7 @@ async function executeTelegramControlCommand(ctx, payload = {}) {
     });
     saveTelegramControlState(tgState);
     if (!view) {
-      return executeTelegramControlCommand(ctx, { ...payload, command: "kantor", args: "" });
+      return executeTelegramControlCommand(ctx, { ...payload, callback_query_id: undefined, command: "kantor", args: "" });
     }
     return {
       ok: true,
@@ -1200,7 +1200,7 @@ async function executeTelegramControlCommand(ctx, payload = {}) {
       };
     }
     if (/^(0|off|none|lepas|hermes|reset|umum)\b/i.test(cleanArg)) {
-      return executeTelegramControlCommand(ctx, { ...payload, command: "lepas", args: "" });
+      return executeTelegramControlCommand(ctx, { ...payload, callback_query_id: undefined, command: "lepas", args: "" });
     }
     const entry = resolveCorporateAgentEntry(cleanArg, snap);
     if (!entry) {
@@ -1914,7 +1914,12 @@ async function executeTelegramControlCommand(ctx, payload = {}) {
 
   if (canonicalId === "screenshot_kantor") {
     const mode = /2d/i.test(args) ? "2d" : "3d";
-    const shot = await captureOfficeScreenshot(mode);
+    const shot = await captureOfficeScreenshot(mode, {
+      sync,
+      directory: liveDirectory,
+      enrichedAgents,
+      activeMeeting,
+    });
     if (!shot.ok) {
       return buildStructuredError({
         correlationId,
@@ -1927,7 +1932,9 @@ async function executeTelegramControlCommand(ctx, payload = {}) {
       ok: true,
       command: "screenshot_kantor",
       mode: shot.mode,
+      renderer: shot.renderer || "headless_browser",
       photo_path: shot.photo_path,
+      photo_base64: shot.photo_base64 || undefined,
       size_bytes: shot.size_bytes,
       receipt: buildExecutionReceipt({
         correlationId,
@@ -1936,8 +1943,8 @@ async function executeTelegramControlCommand(ctx, payload = {}) {
       }),
       reply:
         `📸 *Tangkapan Layar ${shot.mode.toUpperCase()} Virtual Office Berhasil Diambil!*\n` +
-        `• *Mode Render:* \`${shot.mode.toUpperCase()}\`\n` +
-        `• *Ukuran Berkas:* \`${Math.round(shot.size_bytes / 1024)} KB\`\n` +
+        `• *Mode Render:* \`${shot.mode.toUpperCase()}\`${shot.renderer === "lightweight_png_card" ? " _(Lightweight Snapshot Card)_" : ""}\n` +
+        `• *Ukuran Berkas:* \`${Math.max(1, Math.round(shot.size_bytes / 1024))} KB\`\n` +
         `• *Meeting Aktif:* \`${activeMeeting ? activeMeeting.meeting_id : "Workstation Mode"}\``,
       inline_keyboard: [
         [btn("📸 Screenshot 3D", "uac:shot:3d"), btn("📸 Screenshot 2D", "uac:shot:2d")],
@@ -1950,7 +1957,7 @@ async function executeTelegramControlCommand(ctx, payload = {}) {
   // PHASE 08 — FULL 10-STATE 11-AGENT MEETING LIFECYCLE
   // ===========================================================================
   if (canonicalId === "meeting_menu") {
-    return executeTelegramControlCommand(ctx, { ...payload, command: "submenu", args: "meeting" });
+    return executeTelegramControlCommand(ctx, { ...payload, callback_query_id: undefined, command: "submenu", args: "meeting" });
   }
 
   if (canonicalId === "meeting") {
@@ -2257,12 +2264,12 @@ async function executeTelegramControlCommand(ctx, payload = {}) {
       const subParts = args.trim().split(/\s+/);
       const first = subParts[0].toLowerCase();
       if (first === "browse" || first === "jelajah") {
-        return executeTelegramControlCommand(ctx, { ...payload, command: "jelajah", args: subParts.slice(1).join(" ") });
+        return executeTelegramControlCommand(ctx, { ...payload, callback_query_id: undefined, command: "jelajah", args: subParts.slice(1).join(" ") });
       }
       if (first === "cari" || first === "search") {
-        return executeTelegramControlCommand(ctx, { ...payload, command: "cari_folder", args: subParts.slice(1).join(" ") });
+        return executeTelegramControlCommand(ctx, { ...payload, callback_query_id: undefined, command: "cari_folder", args: subParts.slice(1).join(" ") });
       }
-      return executeTelegramControlCommand(ctx, { ...payload, command: "pilih_folder", args: args.trim() });
+      return executeTelegramControlCommand(ctx, { ...payload, callback_query_id: undefined, command: "pilih_folder", args: args.trim() });
     }
     const kb = buildFolderControlKeyboard(tgState, folderStatus);
     saveTelegramControlState(tgState);

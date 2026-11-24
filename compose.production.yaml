@@ -8,7 +8,8 @@
 #   - Zero public ports; loopback-only : 127.0.0.1:8200, 127.0.0.1:8201, 127.0.0.1:8202
 #   - Zero host ports on `postgres`, `hermes` (:8650), and `vulnclaw` (:8660)
 #   - Persistent bind-mounts under `${ALLINAGENT_DATA_DIR:-/opt/allinagent/data}`
-#   - `security_opt`, loopback `ports`, and `networks` inherited cleanly from `compose.yaml`
+#   - `security_opt`, loopback `ports`, `extra_hosts` (`ALLINAGENT_LLM_EXTRA_HOST`),
+#     and `networks` inherited cleanly from `compose.yaml`
 # ==============================================================================
 
 name: allinagent

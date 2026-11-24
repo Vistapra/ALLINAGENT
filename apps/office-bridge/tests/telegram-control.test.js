@@ -438,7 +438,7 @@ test("5. End-to-End Execution of All 13 CODEXE Categories via /api/office-bridge
     enableUpstreamWs: false,
   });
 
-  async function tgCmd(command, args = "") {
+  async function tgCmd(command, args = "", extra = {}) {
     const resp = await fetch(`http://127.0.0.1:${app.port}/api/office-bridge/telegram/command`, {
       method: "POST",
       headers: {
@@ -446,7 +446,7 @@ test("5. End-to-End Execution of All 13 CODEXE Categories via /api/office-bridge
         "Content-Type": "application/json",
         "X-Office-Caller-Id": TEST_OWNER_ID,
       },
-      body: JSON.stringify({ command, args, caller_id: TEST_OWNER_ID, chat_type: "private" }),
+      body: JSON.stringify({ command, args, caller_id: TEST_OWNER_ID, chat_type: "private", ...extra }),
     });
     return { status: resp.status, json: await resp.json() };
   }
@@ -479,6 +479,10 @@ test("5. End-to-End Execution of All 13 CODEXE Categories via /api/office-bridge
     assert.equal(skStatus.commons_clause_count, 10);
     assert.equal(skStatus.quarantined_files, 11);
     assert.equal((await tgCmd("reset_sesi", "3 --clear")).json.ok, true);
+    const pickZeroCb = await tgCmd("uac:pick:0", "", { callback_query_id: `cbq-pick0-${Date.now()}` });
+    assert.equal(pickZeroCb.status, 200);
+    assert.equal(pickZeroCb.json.ok, true);
+    assert.equal(pickZeroCb.json.direct_agent_mode, false);
     assert.equal((await tgCmd("lepas")).json.direct_agent_mode, false);
 
     // 3. Folders & Real Source Code Analysis (.env never leaked!)
@@ -511,10 +515,27 @@ test("5. End-to-End Execution of All 13 CODEXE Categories via /api/office-bridge
     assert.equal(delRes.json.delegation.subtasks.length, 4);
     assert.equal(delRes.json.delegation.subtasks[0].agent_id, "dyn-ag-02");
 
-    // 6. 3D/2D Office & Full 10-State Meeting Lifecycle (verifying dynamic action-item owner_id!)
+    // 6. 3D/2D Office, Lightweight PNG Screenshot Fallback & Full 10-State Meeting Lifecycle
     assert.equal((await tgCmd("status_kantor")).json.ok, true);
     assert.equal((await tgCmd("ruangan")).json.ok, true);
     assert.equal((await tgCmd("lokasi_agen")).json.ok, true);
+
+    const prevChromeBin = process.env.CHROMIUM_BIN;
+    try {
+      process.env.CHROMIUM_BIN = "none";
+      const shotRes = await tgCmd("screenshot_kantor", "3d");
+      assert.equal(shotRes.status, 200);
+      assert.equal(shotRes.json.ok, true);
+      assert.equal(shotRes.json.renderer, "lightweight_png_card");
+      assert.ok(typeof shotRes.json.photo_base64 === "string" && shotRes.json.photo_base64.length > 200);
+      const pngBytes = Buffer.from(shotRes.json.photo_base64, "base64");
+      assert.deepEqual(pngBytes.subarray(0, 8), Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+      assert.equal(pngBytes.readUInt32BE(16), 800);
+      assert.equal(pngBytes.readUInt32BE(20), 460);
+    } finally {
+      if (prevChromeBin === undefined) delete process.env.CHROMIUM_BIN;
+      else process.env.CHROMIUM_BIN = prevChromeBin;
+    }
 
     const mtgStart = await tgCmd("meeting", "Bahas kesiapan rilis lintas-platform");
     assert.equal(mtgStart.json.ok, true);

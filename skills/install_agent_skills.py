@@ -95,10 +95,10 @@ def main() -> int:
     lock_doc, policy_doc = load_lock_and_policy()
     check = verify_manifest(lock_doc, policy_doc)
     if args.verify_manifest:
-        print(json.dumps(check, indent=2))
+        print(json.dumps(check, indent=2, default=str))
         return 0 if check["ok"] else 1
     if not check["ok"]:
-        raise SystemExit(f"Manifest/policy verification failed: {json.dumps(check, indent=2)}")
+        raise SystemExit(f"Manifest/policy verification failed: {json.dumps(check, indent=2, default=str)}")
 
     reg_root = Path(args.registry_dir).resolve()
     prof_root = (Path(args.hermes_home).resolve() / "profiles") if args.hermes_home else PROFILES_ROOT
@@ -136,6 +136,7 @@ def main() -> int:
                     "roles": roles_preview,
                 },
                 indent=2,
+                default=str,
             )
         )
         return 0
@@ -159,6 +160,7 @@ def main() -> int:
                     "local_adaptation_files": prep["local_adaptation_files"],
                 },
                 indent=2,
+                default=str,
             )
         )
         return 0
@@ -181,6 +183,7 @@ def main() -> int:
                     "profiles_dir": str(prof_root),
                 },
                 indent=2,
+                default=str,
             )
         )
         return 0
@@ -193,7 +196,7 @@ def main() -> int:
         strict_oss=args.strict_oss,
         offline=args.offline,
     )
-    print(json.dumps(single, indent=2))
+    print(json.dumps(single, indent=2, default=str))
     return 0
 
 

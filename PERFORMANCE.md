@@ -8,14 +8,14 @@
 
 | Optimization Dimension | Legacy Multi-Root Baseline (`<LEGACY_WINDOWS_WORKSPACE>`) | Optimized `ALLINAGENT` (`v1.0.0`) | Empirical Improvement |
 | :--- | ---: | ---: | ---: |
-| **Total Source & Workspace Disk Footprint** | `11,126,312,521 B` (`10.36 GiB` across `461,174` files) | **`< 15 MiB`** clean Git repository (`~11.5 MiB` tracked source) | **`> 99.8%` reduction** (`100%` capability parity) |
+| **Total Source & Workspace Disk Footprint** | `11,126,312,521 B` (`10.36 GiB` across `461,174` files) | **`11.39 MiB`** clean Git repository (`931` tracked files; `/opt/allinagent` runtime disk `222 MiB`) | **`99.89%` repo reduction** (`100%` capability parity) |
 | **Paperclip `node_modules` Runtime Tree** | `2,660,753,330 B` (`2,537.49 MiB`, `76,082` files) | **`486,915,970 B` (`464.36 MiB`, `52,598` files)** | **`-2,073.13 MiB` (`-81.70%`)** |
-| **Paperclip PostgreSQL Max Connections** | **`73` connections** (`10` main + `9` sub-pools + `2` listen + `52` dedicated) | **`12` connections** (`5` main + `3` sub-pools + `2` listen + `2` dedicated) | **`-83.6%` DB backend slots** |
+| **Paperclip PostgreSQL Max Connections** | **`73` connections** (`10` main + `9` sub-pools + `2` listen + `52` dedicated) | **`6` live active/idle connections** (`<= 12` cap: `5` main + `3` sub-pools + `2` listen + `2` dedicated) | **`-83.6%` DB backend slots** |
 | **Hermes3D + 2D Pixel Office Directory** | `859,565,444 B` (`819.75 MiB`, `39,794` files) | **`8,281,358 B` (`7.90 MiB`, `656` files)** | **`-99.04%` bytes / `-98.35%` files** |
 | **Agent Python Runtime Architecture** | Duplicated portable Python + NPM wrappers (`2.11+ GiB`) | **`1` shared container & `1` Python 3.14 venv** + `< 8 KB` CLI shim | **`0 B` duplicate virtualenvs** |
 | **Active Agent Roster Overhead** | All processes/launchers unmanaged across `25` OS processes | **`4` Wave-1 warm profiles** (`ceo`, `backend`, `qa`, `security-reviewer`) + `7` Wave-2 standby | **`-63.6%` idle agent footprint** |
-| **VulnClaw Security Worker Idle RSS** | Full red-team ML/browser extras (`> 2.5 GiB` disk, `> 95 MiB` RSS) | **`21.02 MiB` measured idle RSS** (`0` background LLM loops) | **`~78%` lower idle RAM** + 100% post-scan reclamation |
-| **Total Production Stack Memory Ceiling** | Unbounded host processes (`~1,389.2 MB` working set + embedded PG) | **`<= 1,536 MiB` hard cgroup v2 ceiling** (`~415 MiB` idle RSS) | **`0` swap storms** (`memswap_limit == mem_limit`) |
+| **VulnClaw Security Worker Idle RSS** | Full red-team ML/browser extras (`> 2.5 GiB` disk, `> 95 MiB` RSS) | **`21.36 MiB` live VPS idle RSS** (`38.43 MiB` active scan $\rightarrow$ `21.36 MiB` reclaimed immediately) | **`~78%` lower idle RAM** + 100% post-scan reclamation |
+| **Total Production Stack Memory Ceiling** | Unbounded host processes (`~1,389.2 MB` working set + embedded PG) | **`<= 1,536.00 MiB` hard cgroup v2 ceiling** (`632.37 MiB` clean install; `1,003.84–1,110.52 MiB` live production) | **`0` swap storms** (`memswap_limit == mem_limit`; `~3.0 GiB` free host RAM) |
 
 ---
 
@@ -26,7 +26,7 @@ Phase 01 empirical storage auditing across `<LEGACY_WINDOWS_WORKSPACE>` measured
 - **`4.59 GiB` (`44.34%`) — Host-Specific Binary Toolchains:** Bundled Chromium browsers, portable Python/Node binaries, `ffmpeg`, duplicate Git distributions, and OS-specific desktop drivers.
 - **`1.80 GiB` — Nested Vendor CLI Bloat:** Unused `@anthropic-ai/claude-code*`, `@anthropic-ai/claude-agent-sdk*`, `@openai/codex*`, `@github/copilot*`, `opencode-*`, and `@embedded-postgres/*` binaries inside Paperclip transitive dependencies.
 - **`1.46 GiB` — Exact SHA-256 Content Duplicates:** Repeated `models_dev_cache.json` snapshots, duplicated per-profile language-server `node_modules`, and redundant staging copies.
-- **Architectural Resolution:** By locking core upstreams to immutable 40-character commit SHAs in [`components.lock.json`](./components.lock.json), expressing customizations as minimal unified diffs in [`patches/`](./patches/), and fetching SHA-256-verified skills into host volumes at setup time, the clean `ALLINAGENT` Git repository achieves a **`> 99.8%` size reduction (`< 15 MiB`)** with zero functional loss.
+- **Architectural Resolution:** By locking core upstreams to immutable 40-character commit SHAs in [`components.lock.json`](./components.lock.json), expressing customizations as minimal unified diffs in [`patches/`](./patches/), and fetching SHA-256-verified skills into host volumes at setup time, the clean `ALLINAGENT` Git repository measures **`11.39 MiB` across `931` tracked files** — a **`99.89%` size reduction** down from `10.36 GiB` (`461,174` local files) with zero functional loss.
 
 ---
 
@@ -80,7 +80,20 @@ Every container in [`compose.production.yaml`](./compose.production.yaml) enforc
 | `vulnclaw` | `allinagent-vulnclaw` | **`128m`** (`128m`) | `21.02 MiB` *(idle)* | `0.50` | `64` | Air-gapped `allinagent_data` (`internal: true`), pure-stdlib daemon + ephemeral child scan subprocess (`:ro` workspace) |
 | **TOTAL STACK** | **6 Containers** | **`1,536 MiB` (`1.50 GiB`)** | **`~415 MiB` idle / `<= 1,070 MiB` active** | `<= 0.85`/ctr | **`832`** | **Preserves `>= 1,850 MiB` untouched host RAM headroom on 8 GB VPS** |
 
-*(Note: In `compose.production.yaml` and `config/resource-limits.json`, the 5 core containers sum to `224 + 416 + 384 + 160 + 224 = 1,408 MiB` plus `vulnclaw` `128 MiB` = **`1,536 MiB` (`1.50 GiB`) hard cgroup ceiling**, while `HEAVY_WORKER_CONCURRENCY=1` serializes heavy Hermes worker runs and defensive static scans.)*
+*(Note: In `compose.production.yaml` and `config/resource-limits.json`, all 6 containers remain strictly bounded under the **`1,536.00 MiB` (`1.50 GiB`) hard cgroup v2 ceiling** with `memswap_limit == mem_limit`, while `HEAVY_WORKER_CONCURRENCY=1` serializes heavy Hermes worker runs and defensive static scans.)*
+
+### 4.2 Measured Live Ubuntu 24.04 LTS (`2 vCPU / 8 GiB RAM`) Production Benchmarks (`Phases 24–28`)
+
+Empirically captured on a live multi-tenant Ubuntu 24.04.4 LTS VPS (`2 vCPU / 8 GiB RAM`, running alongside `34` untouched pre-existing containers):
+
+| Production Telemetry Workload | Measured 6-Container Working Set / Footprint | Utilization vs. `1,536.00 MiB` Ceiling | Empirical Details |
+| :--- | ---: | :---: | :--- |
+| **Clean-Room `Track A` Fresh Install (`Phase 28`)** | **`632.37 MiB`** | `41.17%` | Fresh `git clone` $\rightarrow$ `./allinagent --production setup` with all `6 / 6` containers healthy and `11` agents + `33` skills provisioned. |
+| **Idle / Steady Production Stack (`Phases 24 & 27`)** | **`1,003.84 – 1,052.44 MiB / 1,536.00 MiB`** | `65.35% – 68.52%` | Leaves **`~3.0 GiB` free host RAM** (`2,942–3,055 MiB` `free -m` available) with `0` container restarts. |
+| **Active `VulnClaw` Defensive Scan Peak (`Group G`)** | **`1,068.36 MiB / 1,536.00 MiB`** | `69.55%` | `allinagent-vulnclaw` transitions `21.36 MiB` idle $\rightarrow$ **`38.43 MiB` active** (`3` PIDs) $\rightarrow$ **`21.36 MiB` reclaimed immediately** (`2` PIDs). |
+| **Post-16-Step Multi-Agent Workflow & PDF/DOCX Export (`Group E`)** | **`1,110.52 MiB / 1,536.00 MiB`** | `72.30%` | After 7-role Kanban execution, VulnClaw remediation (`9` $\rightarrow$ `0` findings), and `reportlab` / `python-docx` export + Telegram delivery. |
+| **PostgreSQL 16 `lowmem` Connection Pool (`Group G`)** | **`6` active/idle client connections** | `50.00%` of `<= 12` cap | `2 active + 4 idle = 6` client slots (`max_connections = 40`, `shared_buffers = 48MB`, `work_mem = 2MB`). |
+| **Runtime Host Disk & Clean Git Footprint** | **`222 MiB`** (`/opt/allinagent`) / **`11.39 MiB`** (Git) | — | `/opt/allinagent` bind-mounted data (`hermes=100M`, `postgres=87M`, `skill-registry=6.7M`); clean Git repo `11.39 MiB` (`931` tracked files = **`99.89%` reduction** from `10.36 GiB` / `461,174` files). |
 
 ---
 

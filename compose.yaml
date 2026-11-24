@@ -101,6 +101,8 @@ services:
     networks:
       - allinagent_edge
       - allinagent_data
+    extra_hosts:
+      - "${ALLINAGENT_LLM_EXTRA_HOST:-localhost:127.0.0.1}"
     environment:
       ALLINAGENT_DOCKER: "1"
       HERMES_SOURCE_DIR: "/opt/allinagent/vendor/hermes-agent"
@@ -161,6 +163,8 @@ services:
     networks:
       - allinagent_edge
       - allinagent_data
+    extra_hosts:
+      - "${ALLINAGENT_LLM_EXTRA_HOST:-localhost:127.0.0.1}"
     ports:
       - "127.0.0.1:${PAPERCLIP_PORT:-8201}:3100"
     environment:
@@ -219,6 +223,8 @@ services:
     networks:
       - allinagent_edge
       - allinagent_data
+    extra_hosts:
+      - "${ALLINAGENT_LLM_EXTRA_HOST:-localhost:127.0.0.1}"
     ports:
       - "127.0.0.1:${OFFICE_BRIDGE_PORT:-8202}:3210"
     environment:

@@ -2,15 +2,15 @@
 
 - **Repository:** `https://github.com/Vistapra/ALLINAGENT`
 - **License:** `MIT` ([`LICENSE`](./LICENSE))
-- **Release Tag:** `v1.0.0` (superseding release candidate `v1.0.0-rc.1`)
+- **Release Tag:** `v1.0.0` (General Availability; superseding release candidates `v1.0.0-rc.1`..`v1.0.0-rc.8`)
 - **Release Date:** `2026-11-24`
-- **Target Production Profile:** `2 vCPU / 8 GB RAM` Ubuntu 24.04 LTS (`<= 1,536 MiB` total cgroup v2 ceiling; cross-platform Docker support for Linux, macOS, and Windows)
+- **Target Production Profile:** `2 vCPU / 8 GiB RAM` Ubuntu 24.04 LTS (`<= 1,536.00 MiB` total cgroup v2 ceiling; cross-platform Docker support for Linux, macOS, and Windows)
 
 ---
 
 ## 1. Release Highlights
 
-**ALLINAGENT `v1.0.0`** delivers a complete, self-hosted **Autonomous AI Software Engineering & Defensive Security Company** in a clean `< 15 MiB` open-source repository (`> 99.8%` smaller than its `10.36 GiB` multi-root prototype) while preserving **100% of all 30 enterprise capabilities (`FEAT-01`..`FEAT-30`)**:
+**ALLINAGENT `v1.0.0`** delivers a complete, self-hosted **Autonomous AI Software Engineering & Defensive Security Company** in a clean **`11.39 MiB` open-source Git repository** (`931` tracked files, **`99.89%` smaller** than its `10.36 GiB` / `461,174`-file multi-root prototype; `222 MiB` `/opt/allinagent` runtime footprint) while preserving **100% of all 30 enterprise capabilities (`FEAT-01`..`FEAT-30`)** and achieving **`100% PASS` across all `113 / 113` live production acceptance checks**:
 
 1. **Unified Multi-Plane Stack (`6` Hardened Containers, `<= 1,536 MiB` Ceiling):**
    - **Hermes Agent (`v0.23.3`, commit `eb49b8920a25ffa7bb2fadf548fe819221ca79d7`):** Single shared Python 3.14 runtime + internal `hermes-exec` broker (`HEAVY_WORKER_CONCURRENCY=1`) + `< 8 KB` `/usr/local/bin/hermes` remote CLI shim.
@@ -93,7 +93,7 @@ cd ALLINAGENT
 
 ---
 
-## 6. Release Candidate History (`v1.0.0-rc.1` $\rightarrow$ `v1.0.0`)
+## 6. Release Candidate History (`v1.0.0-rc.1`..`v1.0.0-rc.8` $\rightarrow$ `v1.0.0` GA)
 
-- **`v1.0.0-rc.1`:** Completed Phases `00`–`26` architecture synthesis, cross-platform Windows-to-Linux migration, shared Hermes runtime, Paperclip `-81.70%` bloat prune, `VulnClaw` `21.02 MiB` sandbox, `Hermes3D` `-99.04%` staging, 33-skill supply-chain lock, Track A/B migration toolkit, and SHA-pinned CI/GHCR workflows.
-- **`v1.0.0` (GA):** Completed Phase `27` live 8-group acceptance (`Groups A–H`), Phase `28` clean-room Track A installation verification, and Phase `29` complete 25-document root release suite with zero findings under `scripts/audit-public-release.py`.
+- **`v1.0.0-rc.1`..`v1.0.0-rc.8`:** Completed Phases `00`–`26` architecture synthesis, cross-platform Windows-to-Linux migration, shared Hermes runtime, Paperclip `-81.70%` bloat prune, `VulnClaw` `21.36 MiB` sandbox, `Hermes3D` `-99.04%` staging, 33-skill supply-chain lock, Track A/B migration toolkit, SHA-pinned CI/GHCR SLSA workflows, and multi-tenant Ubuntu 24.04 LTS deployment (`1,003.84–1,052.44 MiB / 1,536.00 MiB` steady RSS, `6` PostgreSQL `lowmem` connections).
+- **`v1.0.0` (General Availability):** Verified **`113 / 113` (`100% PASS`)** live Phase `27` production checks (`A 10/10`, `B 11/11` with `241,240` real tokens & `0` cross-profile pollution, `C 17/17` 3D/2D browser UI, `D 17/17` 59 Telegram commands + `0` HTTP 409 + live DM delivery, `E 16/16` 7-role Kanban + VulnClaw `9` $\rightarrow$ `0` + `.pdf`/`.docx` Telegram delivery, `F 10/10` supply-chain + malicious skill rejection, `G 16/16` benchmarks, `H 10/10` + `6/6` coexistence = `42/42`), Phase `28` clean-room `Track A` fresh install (`632.37 MiB`, `PASS`), GA runtime polish (symlink-preserving `HERMES_PYTHON_BIN`, `default=str` frontmatter JSON date serialization + `UPSTREAM_THIRD_PARTY_NOTICES.md`, `office-bridge` `git` + `800x460` PNG `/screenshot-kantor` card, `uac:pick:0` anti-self-replay, `paperclip` `python3` + `/home/node/.hermes`), and `0` findings under `scripts/audit-public-release.py`.

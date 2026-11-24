@@ -74,6 +74,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
+      python3 \
       tini \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/lib/allinagent/paperclip \
@@ -81,7 +82,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
                 /var/lib/allinagent/reports \
                 /var/lib/allinagent/hermes/profiles \
                 /var/lib/allinagent/secrets \
-    && chown -R node:node /var/lib/allinagent
+                /home/node/.hermes \
+    && chmod 0700 /home/node/.hermes \
+    && chown -R node:node /var/lib/allinagent /home/node/.hermes
 
 COPY --from=builder --chown=node:node /opt/paperclip /opt/paperclip
 COPY --from=builder --chown=node:node /opt/allinagent /opt/allinagent

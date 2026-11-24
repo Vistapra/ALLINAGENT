@@ -526,10 +526,27 @@ def ast_scan_python_tree(pkg_dir: Path) -> list[dict[str, Any]]:
     return findings
 
 
+def serialize_frontmatter_json(data: Any, **kwargs: Any) -> str:
+    """Serialize parsed YAML frontmatter or Stage-1 metadata safely (`default=str` for ISO `datetime.date` values)."""
+    kwargs.setdefault("default", str)
+    return json.dumps(data, **kwargs)
+
+
 def _run_sentry_scan_skill(scanner_script: Path, target_dir: Path) -> dict[str, Any]:
-    """Execute `getsentry/skills` `scan_skill.py` against `target_dir`."""
+    """Execute `getsentry/skills` `scan_skill.py` against `target_dir` with `default=str` JSON date safety."""
+    wrapper_code = (
+        "import json as _json, runpy, sys\n"
+        "_orig_dumps = _json.dumps\n"
+        "def _safe_dumps(obj, *args, **kwargs):\n"
+        "    kwargs.setdefault('default', str)\n"
+        "    return _orig_dumps(obj, *args, **kwargs)\n"
+        "_json.dumps = _safe_dumps\n"
+        "_json.JSONEncoder.default = lambda self, o: str(o)\n"
+        "sys.argv = sys.argv[1:]\n"
+        "runpy.run_path(sys.argv[0], run_name='__main__')\n"
+    )
     proc = subprocess.run(
-        [str(SKILL_VENV_PYTHON), str(scanner_script), str(target_dir)],
+        [str(SKILL_VENV_PYTHON), "-B", "-c", wrapper_code, str(scanner_script), str(target_dir)],
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -564,6 +581,7 @@ def quarantine_staged_package(staging_dir: Path, quarantine_root: Path, pkg_id: 
                 "reason": reason,
             },
             indent=2,
+            default=str,
         )
         + "\n",
         encoding="utf-8",
@@ -692,6 +710,20 @@ def download_package_to_staging(pkg_meta: dict[str, Any], staging_dir: Path) -> 
     if lic_url:
         with urllib.request.urlopen(lic_url, timeout=30) as resp:
             (staging_dir / "UPSTREAM_LICENSE").write_bytes(resp.read())
+
+    notices_dst = staging_dir / "UPSTREAM_THIRD_PARTY_NOTICES.md"
+    if (
+        owner_repo == "anthropics/skills" or pkg_meta.get("pkg_id") in ("docx", "pdf")
+    ) and not notices_dst.is_file():
+        notices_url = (
+            pkg_meta.get("upstream_third_party_notices_url")
+            or f"https://raw.githubusercontent.com/{owner_repo}/{sha}/THIRD_PARTY_NOTICES.md"
+        )
+        try:
+            with urllib.request.urlopen(notices_url, timeout=30) as resp:
+                notices_dst.write_bytes(resp.read())
+        except Exception:
+            pass
 
 
 # --- Stage 2: License Attribution, Frontmatter Normalization & Link Materialization ---
@@ -1240,7 +1272,7 @@ def install_agent_skills(
                     "pinned": True,
                     "locked": True,
                 }
-    usage_path.write_text(json.dumps(usage_data, indent=2) + "\n", encoding="utf-8")
+    usage_path.write_text(json.dumps(usage_data, indent=2, default=str) + "\n", encoding="utf-8")
     (profile_home / ".skills_prompt_snapshot.json").unlink(missing_ok=True)
 
     # Update role-manifest.json & append routing instructions
@@ -1248,7 +1280,7 @@ def install_agent_skills(
     if rm_path.is_file():
         rm = json.loads(rm_path.read_text(encoding="utf-8"))
         rm["toolsets"] = spec["toolsets"]
-        rm_path.write_text(json.dumps(rm, indent=2) + "\n", encoding="utf-8")
+        rm_path.write_text(json.dumps(rm, indent=2, default=str) + "\n", encoding="utf-8")
     _append_skill_routing_to_instructions(spec, profiles_root=profiles_root, workers_root=workers_root)
 
     # Sync with Paperclip Skills Store API when reachable
@@ -1336,7 +1368,7 @@ def install_agent_skills(
         "isolated_experimental": isolated_exp,
         "installed_packages": installed_records,
     }
-    (agent_reg_dir / "skill-set.json").write_text(json.dumps(skill_set_doc, indent=2) + "\n", encoding="utf-8")
+    (agent_reg_dir / "skill-set.json").write_text(json.dumps(skill_set_doc, indent=2, default=str) + "\n", encoding="utf-8")
 
     yaml_lines = [
         f"agent: {spec['role_slug']}",
@@ -1494,7 +1526,7 @@ def write_global_assignments_manifest(
         "agents": assignments_by_agent,
     }
     out_path = manifests_out_dir / "agent-skill-assignments.json"
-    out_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    out_path.write_text(json.dumps(payload, indent=2, default=str) + "\n", encoding="utf-8")
     return payload
 
 
@@ -1523,7 +1555,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.cmd == "verify-manifest":
         res = verify_manifest()
-        print(json.dumps(res, indent=2))
+        print(json.dumps(res, indent=2, default=str))
         return 0 if res["ok"] else 1
 
     if args.cmd == "install":
@@ -1537,7 +1569,7 @@ def main() -> int:
                 strict_oss=args.strict_oss,
                 offline=args.offline,
             )
-            print(json.dumps({"installed_agents": res["installed_agents"], "stage1": res["stage1_summary"]}, indent=2))
+            print(json.dumps({"installed_agents": res["installed_agents"], "stage1": res["stage1_summary"]}, indent=2, default=str))
         else:
             res = install_agent_skills(
                 args.agent,
@@ -1547,7 +1579,7 @@ def main() -> int:
                 strict_oss=args.strict_oss,
                 offline=args.offline,
             )
-            print(json.dumps(res, indent=2))
+            print(json.dumps(res, indent=2, default=str))
         return 0
 
     if args.cmd == "reconcile":
@@ -1556,11 +1588,11 @@ def main() -> int:
             strict_oss=args.strict_oss,
             offline=args.offline,
         )
-        print(json.dumps({"reconciled_agents": res["installed_agents"], "status": "OK"}, indent=2))
+        print(json.dumps({"reconciled_agents": res["installed_agents"], "status": "OK"}, indent=2, default=str))
         return 0
 
     if args.cmd == "status":
-        print(json.dumps(write_global_assignments_manifest(), indent=2))
+        print(json.dumps(write_global_assignments_manifest(), indent=2, default=str))
         return 0
 
     return 0

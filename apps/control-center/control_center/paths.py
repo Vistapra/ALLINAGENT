@@ -285,20 +285,58 @@ def _resolve_hermes_exe() -> str:
     return str(cand)
 
 
-def _resolve_venv_or_sys_python(env_key: str, default_venv_subdir: str) -> Path:
-    explicit = os.environ.get(env_key, "").strip()
+def _abspath_preserve_symlink(candidate: str | Path) -> Path:
+    """Return normalized `os.path.abspath` without dereferencing virtualenv `bin/python` symlinks."""
+    return Path(os.path.abspath(os.path.expanduser(str(candidate))))
+
+
+def resolve_hermes_python_bin(raw_override: str | Path | None = None) -> Path:
+    """Resolve the Hermes/runtime Python executable while preserving venv symlink paths."""
+    explicit = str(raw_override if raw_override is not None else os.environ.get("HERMES_PYTHON_BIN", "")).strip()
     if explicit:
-        return Path(explicit).expanduser().resolve()
+        return _abspath_preserve_symlink(explicit)
+    if IS_POSIX:
+        docker_venv_py = venv_python_path("/opt/hermes-venv")
+        if docker_venv_py.is_symlink() or docker_venv_py.exists():
+            return _abspath_preserve_symlink(docker_venv_py)
+    return _abspath_preserve_symlink(sys.executable)
+
+
+def _resolve_venv_or_sys_python(
+    env_key: str,
+    default_venv_subdir: str,
+    *,
+    docker_venv_dir: str | None = None,
+    fallback_env_keys: tuple[str, ...] = (),
+) -> Path:
+    for key in (env_key, *fallback_env_keys):
+        explicit = os.environ.get(key, "").strip()
+        if explicit:
+            return _abspath_preserve_symlink(explicit)
+    if IS_POSIX and docker_venv_dir:
+        docker_cand = venv_python_path(docker_venv_dir)
+        if docker_cand.is_symlink() or docker_cand.exists():
+            return _abspath_preserve_symlink(docker_cand)
     cand = venv_python_path(ALLINAGENT_ROOT / "runtime" / default_venv_subdir)
-    if cand.exists():
-        return cand.resolve()
-    return Path(sys.executable).resolve()
+    if cand.is_symlink() or cand.exists():
+        return _abspath_preserve_symlink(cand)
+    return resolve_hermes_python_bin()
 
 
 HERMES_EXE: str = _resolve_hermes_exe()
-PYTHON_EXE: str = sys.executable
-SKILL_VENV_PYTHON: Path = _resolve_venv_or_sys_python("SKILL_VENV_PYTHON", "skill-tools-venv")
-VULNCLAW_VENV_PYTHON: Path = _resolve_venv_or_sys_python("VULNCLAW_VENV_PYTHON", "vulnclaw-venv")
+HERMES_PYTHON_BIN: Path = resolve_hermes_python_bin()
+PYTHON_EXE: str = str(HERMES_PYTHON_BIN)
+SKILL_VENV_PYTHON: Path = _resolve_venv_or_sys_python(
+    "SKILL_VENV_PYTHON",
+    "skill-tools-venv",
+    docker_venv_dir="/opt/hermes-venv",
+    fallback_env_keys=("HERMES_PYTHON_BIN",),
+)
+VULNCLAW_VENV_PYTHON: Path = _resolve_venv_or_sys_python(
+    "VULNCLAW_VENV_PYTHON",
+    "vulnclaw-venv",
+    docker_venv_dir="/opt/vulnclaw-venv",
+)
 SKILL_NODE_TOOLS_DIR: Path = Path(
     os.environ.get("SKILL_NODE_TOOLS_DIR") or (ALLINAGENT_ROOT / "runtime" / "skill-node-tools")
 ).expanduser().resolve()

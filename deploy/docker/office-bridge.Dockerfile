@@ -87,10 +87,12 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
       ca-certificates \
       curl \
+      git \
       python3 \
       tini \
       ${EXTRA_PKGS}; \
     rm -rf /var/lib/apt/lists/*; \
+    git config --system --add safe.directory '*'; \
     mkdir -p /var/lib/allinagent/office-data \
              /var/lib/allinagent/data \
              /var/lib/allinagent/secrets \

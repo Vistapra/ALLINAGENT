@@ -12,6 +12,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const zlib = require("node:zlib");
 const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 const {
@@ -211,23 +212,327 @@ async function buildOfficeRemoteStatus(sync, directory) {
   };
 }
 
+const PNG_CRC32_TABLE = (() => {
+  const tbl = new Uint32Array(256);
+  for (let n = 0; n < 256; n += 1) {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    tbl[n] = c >>> 0;
+  }
+  return tbl;
+})();
+
+function computeCrc32(buf) {
+  if (typeof zlib.crc32 === "function") {
+    return zlib.crc32(buf) >>> 0;
+  }
+  let c = 0xffffffff;
+  for (let i = 0; i < buf.length; i += 1) {
+    c = PNG_CRC32_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+  }
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function buildPngChunk(typeAscii, dataBuf) {
+  const typeBuf = Buffer.from(typeAscii, "ascii");
+  const lenBuf = Buffer.alloc(4);
+  lenBuf.writeUInt32BE(dataBuf.length, 0);
+  const crcBuf = Buffer.alloc(4);
+  crcBuf.writeUInt32BE(computeCrc32(Buffer.concat([typeBuf, dataBuf])), 0);
+  return Buffer.concat([lenBuf, typeBuf, dataBuf, crcBuf]);
+}
+
+const BITMAP_FONT_5X7 = Object.freeze({
+  " ": ["00000", "00000", "00000", "00000", "00000", "00000", "00000"],
+  A: ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+  B: ["11110", "10001", "10001", "11110", "10001", "10001", "11110"],
+  C: ["01111", "10000", "10000", "10000", "10000", "10000", "01111"],
+  D: ["11110", "10001", "10001", "10001", "10001", "10001", "11110"],
+  E: ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
+  F: ["11111", "10000", "10000", "11110", "10000", "10000", "10000"],
+  G: ["01111", "10000", "10000", "10011", "10001", "10001", "01111"],
+  H: ["10001", "10001", "10001", "11111", "10001", "10001", "10001"],
+  I: ["01110", "00100", "00100", "00100", "00100", "00100", "01110"],
+  J: ["00111", "00010", "00010", "00010", "10010", "10010", "01100"],
+  K: ["10001", "10010", "10100", "11000", "10100", "10010", "10001"],
+  L: ["10000", "10000", "10000", "10000", "10000", "10000", "11111"],
+  M: ["10001", "11011", "10101", "10101", "10001", "10001", "10001"],
+  N: ["10001", "11001", "10101", "10011", "10001", "10001", "10001"],
+  O: ["01110", "10001", "10001", "10001", "10001", "10001", "01110"],
+  P: ["11110", "10001", "10001", "11110", "10000", "10000", "10000"],
+  Q: ["01110", "10001", "10001", "10001", "10101", "10010", "01101"],
+  R: ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
+  S: ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
+  T: ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
+  U: ["10001", "10001", "10001", "10001", "10001", "10001", "01110"],
+  V: ["10001", "10001", "10001", "10001", "10001", "01010", "00100"],
+  W: ["10001", "10001", "10001", "10101", "10101", "11011", "10001"],
+  X: ["10001", "10001", "01010", "00100", "01010", "10001", "10001"],
+  Y: ["10001", "10001", "01010", "00100", "00100", "00100", "00100"],
+  Z: ["11111", "00001", "00010", "00100", "01000", "10000", "11111"],
+  0: ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
+  1: ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+  2: ["01110", "10001", "00001", "00010", "00100", "01000", "11111"],
+  3: ["11110", "00001", "00001", "01110", "00001", "00001", "11110"],
+  4: ["00010", "00110", "01010", "10010", "11111", "00010", "00010"],
+  5: ["11111", "10000", "10000", "11110", "00001", "00001", "11110"],
+  6: ["01111", "10000", "10000", "11110", "10001", "10001", "01110"],
+  7: ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
+  8: ["01110", "10001", "10001", "01110", "10001", "10001", "01110"],
+  9: ["01110", "10001", "10001", "01111", "00001", "00001", "11110"],
+  ":": ["00000", "00100", "00100", "00000", "00100", "00100", "00000"],
+  "-": ["00000", "00000", "00000", "11111", "00000", "00000", "00000"],
+  "_": ["00000", "00000", "00000", "00000", "00000", "00000", "11111"],
+  "/": ["00001", "00010", "00100", "00100", "01000", "10000", "00000"],
+  ".": ["00000", "00000", "00000", "00000", "00000", "00100", "00100"],
+  "(": ["00010", "00100", "01000", "01000", "01000", "00100", "00010"],
+  ")": ["01000", "00100", "00010", "00010", "00010", "00100", "01000"],
+  "[": ["01110", "01000", "01000", "01000", "01000", "01000", "01110"],
+  "]": ["01110", "00010", "00010", "00010", "00010", "00010", "01110"],
+  "|": ["00100", "00100", "00100", "00100", "00100", "00100", "00100"],
+  "@": ["01110", "10001", "10111", "10101", "10111", "10000", "01111"],
+  "#": ["01010", "11111", "01010", "01010", "11111", "01010", "00000"],
+  "+": ["00000", "00100", "00100", "11111", "00100", "00100", "00000"],
+  "&": ["01100", "10010", "10100", "01000", "10101", "10010", "01101"],
+  "<": ["00010", "00100", "01000", "10000", "01000", "00100", "00010"],
+  "=": ["00000", "00000", "11111", "00000", "11111", "00000", "00000"],
+  ">": ["01000", "00100", "00010", "00001", "00010", "00100", "01000"],
+});
+
+const DEFAULT_SNAPSHOT_ROSTER = Object.freeze([
+  { index: 1, name: "CEO Agent", handle: "@ceo", department: "Executive", wave: 1 },
+  { index: 2, name: "CTO Agent", handle: "@cto", department: "Architecture", wave: 2 },
+  { index: 3, name: "Backend Developer", handle: "@backend", department: "Engineering", wave: 1 },
+  { index: 4, name: "Frontend Developer", handle: "@frontend", department: "Frontend & UI", wave: 2 },
+  { index: 5, name: "DevOps Engineer", handle: "@devops", department: "DevOps & Runtime", wave: 2 },
+  { index: 6, name: "QA Engineer", handle: "@qa", department: "Quality Assurance", wave: 1 },
+  { index: 7, name: "Security Lead", handle: "@security_lead", department: "Cybersecurity", wave: 2 },
+  { index: 8, name: "Security Reviewer", handle: "@security", department: "Cybersecurity", wave: 1 },
+  { index: 9, name: "Findings Analyst", handle: "@findings", department: "SOC Triage", wave: 2 },
+  { index: 10, name: "Remediation Reviewer", handle: "@remediation", department: "Sec Remediation", wave: 2 },
+  { index: 11, name: "Report & Compliance", handle: "@compliance", department: "Audit & Gov", wave: 2 },
+]);
+
 /**
- * Capture a real headless Chromium/Chrome/Edge screenshot of authenticated 3D or 2D Office (`PHASE 07`).
- * Supports Linux/Docker (`--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage`) and Windows.
+ * Generate a crisp, valid 800x460 dark-themed PNG (`\x89PNG\r\n\x1a\n`) using pure Node `zlib`
+ * when headless Chromium is omitted inside lightweight VPS containers (`OBS-D01`).
  */
-async function captureOfficeScreenshot(mode = "3d") {
+function renderLightweightOfficeSnapshotPng({ mode = "3d", agents = [], activeMeeting = null } = {}) {
+  const width = 800;
+  const height = 460;
+  const stride = 1 + width * 3;
+  const raw = Buffer.alloc(height * stride, 0);
+
+  const fillRect = (x0, y0, w, h, rgb) => {
+    const [r, g, b] = rgb;
+    const xStart = Math.max(0, Math.floor(x0));
+    const yStart = Math.max(0, Math.floor(y0));
+    const xEnd = Math.min(width, Math.floor(x0 + w));
+    const yEnd = Math.min(height, Math.floor(y0 + h));
+    for (let y = yStart; y < yEnd; y += 1) {
+      const rowBase = y * stride + 1;
+      for (let x = xStart; x < xEnd; x += 1) {
+        const off = rowBase + x * 3;
+        raw[off] = r;
+        raw[off + 1] = g;
+        raw[off + 2] = b;
+      }
+    }
+  };
+
+  const strokeRect = (x0, y0, w, h, rgb) => {
+    fillRect(x0, y0, w, 1, rgb);
+    fillRect(x0, y0 + h - 1, w, 1, rgb);
+    fillRect(x0, y0, 1, h, rgb);
+    fillRect(x0 + w - 1, y0, 1, h, rgb);
+  };
+
+  const drawText = (text, x0, y0, rgb, scale = 1) => {
+    const str = String(text || "").toUpperCase();
+    let cursorX = Math.floor(x0);
+    const baseY = Math.floor(y0);
+    for (let idx = 0; idx < str.length; idx += 1) {
+      const ch = str[idx];
+      const glyph = BITMAP_FONT_5X7[ch] || BITMAP_FONT_5X7["-"];
+      for (let gy = 0; gy < 7; gy += 1) {
+        const rowBits = glyph[gy];
+        for (let gx = 0; gx < 5; gx += 1) {
+          if (rowBits[gx] === "1") {
+            fillRect(cursorX + gx * scale, baseY + gy * scale, scale, scale, rgb);
+          }
+        }
+      }
+      cursorX += 6 * scale;
+      if (cursorX >= width - 8) break;
+    }
+  };
+
+  // Base dark background & header banner
+  fillRect(0, 0, width, height, [11, 18, 32]);
+  strokeRect(2, 2, width - 4, height - 4, [30, 41, 59]);
+  fillRect(4, 4, width - 8, 62, [17, 28, 51]);
+  fillRect(4, 66, width - 8, 2, [56, 189, 248]);
+
+  const roster = Array.isArray(agents) && agents.length > 0 ? agents.slice(0, 11) : DEFAULT_SNAPSHOT_ROSTER;
+  const normalized = roster.map((ag, idx) => {
+    const index = ag.index || idx + 1;
+    const activation = String(ag.activation_status || (ag.wave === 1 ? "ACTIVE" : "STANDBY")).toUpperCase();
+    const visual = String(ag.visual_state || (activation === "ACTIVE" ? "IDLE_AT_DESK" : "STANDBY")).toUpperCase();
+    return {
+      index,
+      name: String(ag.name || ag.display_name || `Agent ${index}`).slice(0, 22),
+      handle: String(ag.handle || `@agent${index}`).slice(0, 14),
+      department: String(ag.department || "Operations").slice(0, 18),
+      activation,
+      visual,
+    };
+  });
+
+  const activeCount = normalized.filter((a) => a.activation === "ACTIVE").length;
+  const standbyCount = normalized.length - activeCount;
+  const mtgLabel = activeMeeting ? `ACTIVE (${String(activeMeeting.meeting_id || "LIVE").slice(0, 12)})` : "WORKSTATION";
+  const tsIso = new Date().toISOString().replace("T", " ").slice(0, 19);
+
+  drawText("ALLINAGENT VIRTUAL OFFICE LIVE SNAPSHOT", 20, 16, [248, 250, 252], 2);
+  drawText(
+    `VIEW: ${String(mode || "3d").toUpperCase()}  |  ACTIVE: ${activeCount}/${normalized.length}  |  STANDBY: ${standbyCount}/${normalized.length}  |  ROOM: ${mtgLabel}  |  ${tsIso} UTC`,
+    20,
+    46,
+    [56, 189, 248],
+    1
+  );
+
+  // 2-column x 6-row grid of all 11 corporate AI agents
+  const cardW = 374;
+  const cardH = 52;
+  for (let i = 0; i < normalized.length; i += 1) {
+    const ag = normalized[i];
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const cx = 20 + col * (cardW + 12);
+    const cy = 80 + row * (cardH + 8);
+
+    fillRect(cx, cy, cardW, cardH, [19, 31, 54]);
+    strokeRect(cx, cy, cardW, cardH, [39, 55, 82]);
+
+    const isMeeting = ag.visual.includes("MEETING");
+    const isActive = ag.activation === "ACTIVE";
+    const statusColor = isMeeting ? [245, 158, 11] : isActive ? [16, 185, 129] : [100, 116, 139];
+    fillRect(cx, cy, 5, cardH, statusColor);
+    fillRect(cx + 14, cy + 12, 8, 8, statusColor);
+
+    drawText(`${ag.index}. ${ag.name} (${ag.handle})`, cx + 28, cy + 12, [241, 245, 249], 1);
+    drawText(`${ag.department}  |  ${ag.activation}  [${ag.visual.slice(0, 16)}]`, cx + 28, cy + 31, [148, 163, 184], 1);
+  }
+
+  // Footer status bar
+  fillRect(4, height - 24, width - 8, 20, [15, 23, 42]);
+  drawText(
+    "ALLINAGENT V1.0.0  |  LIGHTWEIGHT CONTAINER PNG CARD (<= 1536 MIB CGROUP BUDGET)",
+    20,
+    height - 17,
+    [148, 163, 184],
+    1
+  );
+
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8; // 8-bit depth
+  ihdr[9] = 2; // Truecolor RGB
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
+
+  const compressed = zlib.deflateSync(raw, { level: 6 });
+  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  return Buffer.concat([
+    signature,
+    buildPngChunk("IHDR", ihdr),
+    buildPngChunk("IDAT", compressed),
+    buildPngChunk("IEND", Buffer.alloc(0)),
+  ]);
+}
+
+function isUsableBrowserBinary(browserBin, env = process.env) {
+  const modePref = String(env.OFFICE_SCREENSHOT_MODE || "").trim().toLowerCase();
+  if (modePref === "lite" || modePref === "card" || String(env.CHROMIUM_BIN || "").trim().toLowerCase() === "none") {
+    return false;
+  }
+  const cand = String(browserBin || "").trim();
+  if (!cand) return false;
+  if (path.isAbsolute(cand)) return fs.existsSync(cand);
+  const pathDirs = String(env.PATH || "").split(path.delimiter).filter(Boolean);
+  const exts = process.platform === "win32" ? ["", ".exe", ".cmd"] : [""];
+  for (const dir of pathDirs) {
+    for (const ext of exts) {
+      if (fs.existsSync(path.join(dir, cand + ext))) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Capture a real headless Chromium/Chrome/Edge screenshot of authenticated 3D or 2D Office (`PHASE 07`),
+ * falling back cleanly to a pure-Node valid 800x460 PNG live status card when headless Chromium is
+ * intentionally omitted inside lightweight VPS containers (`OBS-D01`).
+ */
+async function captureOfficeScreenshot(mode = "3d", options = {}) {
   const cleanMode = String(mode || "3d").toLowerCase() === "2d" ? "2d" : "3d";
   fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true, mode: 0o700 });
   const outPath = path.join(SCREENSHOTS_DIR, `office-${cleanMode}-${Date.now()}.png`);
-  const browserBin = resolveChromiumExe(process.env);
+  const rawBrowserBin = options.forceLightweightCard ? "" : resolveChromiumExe(process.env);
+  const browserBin = isUsableBrowserBinary(rawBrowserBin, process.env) ? rawBrowserBin : "";
   const baseUrl = String(process.env.HERMES3D_BASE_URL || HERMES3D_BASE_URL).replace(/\/$/, "");
   const tmpProfileDir = path.join(os.tmpdir(), `allinagent-office-shot-${process.pid}-${Date.now()}`);
 
-  if (!browserBin) {
+  const buildLightweightFallback = () => {
+    let agentsForCard = options.enrichedAgents || null;
+    if (!agentsForCard && options.sync) {
+      const snap = options.sync.getFullSnapshot?.() || {};
+      const dir = options.directory || DEFAULT_SNAPSHOT_ROSTER;
+      agentsForCard = dir.map((entry, idx) => {
+        const live =
+          (snap.agents || []).find(
+            (a) => a.paperclip_agent_id === entry.id || a.role_slug === entry.slug
+          ) || {};
+        const activationStatus = live.activation_status || (entry.wave === 1 ? "ACTIVE" : "STANDBY");
+        return {
+          index: entry.index || idx + 1,
+          name: entry.name,
+          handle: entry.handle,
+          department: entry.department,
+          activation_status: activationStatus,
+          visual_state: live.state?.visual_state || (activationStatus === "ACTIVE" ? "IDLE_AT_DESK" : "STANDBY"),
+        };
+      });
+    }
+    const activeMtg =
+      options.activeMeeting !== undefined
+        ? options.activeMeeting
+        : options.sync
+          ? getActiveMeetingV2(options.sync)
+          : null;
+    const pngBuf = renderLightweightOfficeSnapshotPng({
+      mode: cleanMode,
+      agents: agentsForCard || DEFAULT_SNAPSHOT_ROSTER,
+      activeMeeting: activeMtg,
+    });
+    fs.writeFileSync(outPath, pngBuf);
     return {
-      ok: false,
-      error: "Browser headless (Chromium/Chrome/Edge) tidak ditemukan di host. Setel CHROMIUM_BIN jika diperlukan.",
+      ok: true,
+      mode: cleanMode,
+      renderer: "lightweight_png_card",
+      photo_path: outPath,
+      photo_base64: pngBuf.toString("base64"),
+      size_bytes: pngBuf.length,
     };
+  };
+
+  if (!browserBin) {
+    return buildLightweightFallback();
   }
 
   const sandboxFlags =
@@ -289,10 +594,18 @@ async function captureOfficeScreenshot(mode = "3d") {
     const { stdout } = await execFileAsync(PYTHON_EXE, ["-c", pyHelper], { timeout: 35_000, windowsHide: true });
     const lastLine = stdout.trim().split(/\r?\n/).pop();
     const parsed = JSON.parse(lastLine);
-    if (parsed.ok) {
-      return { ok: true, mode: cleanMode, photo_path: parsed.path, size_bytes: parsed.bytes };
+    if (parsed.ok && fs.existsSync(parsed.path)) {
+      const buf = fs.readFileSync(parsed.path);
+      return {
+        ok: true,
+        mode: cleanMode,
+        renderer: "headless_browser",
+        photo_path: parsed.path,
+        photo_base64: buf.toString("base64"),
+        size_bytes: buf.length,
+      };
     }
-  } catch (err) {
+  } catch {
     try {
       await execFileAsync(
         browserBin,
@@ -307,18 +620,20 @@ async function captureOfficeScreenshot(mode = "3d") {
         { timeout: 20_000, windowsHide: true }
       );
       if (fs.existsSync(outPath) && fs.statSync(outPath).size > 1000) {
+        const buf = fs.readFileSync(outPath);
         return {
           ok: true,
           mode: cleanMode,
+          renderer: "headless_browser",
           photo_path: outPath,
-          size_bytes: fs.statSync(outPath).size,
+          photo_base64: buf.toString("base64"),
+          size_bytes: buf.length,
           note: "direct_headless_screenshot_fallback",
         };
       }
     } catch {}
-    return { ok: false, error: sanitizeText(err.message || "Gagal mengambil screenshot Office.") };
   }
-  return { ok: false, error: "Screenshot gagal dibuat." };
+  return buildLightweightFallback();
 }
 
 /**
@@ -654,6 +969,7 @@ module.exports = {
   loadMeetingsV2,
   getActiveMeetingV2,
   buildOfficeRemoteStatus,
+  renderLightweightOfficeSnapshotPng,
   captureOfficeScreenshot,
   startFullLifecycleMeeting,
   conductMeetingDiscussion,
