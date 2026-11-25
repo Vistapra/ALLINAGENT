@@ -118,3 +118,6 @@ Desktop.ini
 *.swp
 *.swo
 *~
+
+# Host-specific compose override (site integrations, never committed)
+compose.local.yaml

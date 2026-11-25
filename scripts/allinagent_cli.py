@@ -265,6 +265,10 @@ def build_compose_cmd(env_file: Path, production: bool, sub_args: list[str]) -> 
     cmd.extend(["-f", str(COMPOSE_BASE)])
     if production and COMPOSE_PROD.is_file():
         cmd.extend(["-f", str(COMPOSE_PROD)])
+    # Optional, git-ignored host-specific override (e.g. extra networks for site integrations).
+    compose_local = REPO_ROOT / "compose.local.yaml"
+    if compose_local.is_file():
+        cmd.extend(["-f", str(compose_local)])
     cmd.extend(sub_args)
     return cmd
 
