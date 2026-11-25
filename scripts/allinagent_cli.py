@@ -387,6 +387,8 @@ def scaffold_data_directories(data_dir: Path, workspaces_dir: Path) -> None:
         (data_dir / "paperclip", 1000, 1000, 0o750),
         (data_dir / "hermes", 10001, 10001, 0o750),
         (data_dir / "hermes" / "profiles", 10001, 10001, 0o750),
+        (data_dir / "skill-registry", 10001, 1000, 0o755),
+        (data_dir / "workers", 10001, 1000, 0o755),
         (data_dir / "reports", 10001, 1000, 0o775),
         (data_dir / "office-data", 1000, 1000, 0o750),
         (data_dir / "studio-state", 1000, 1000, 0o750),
@@ -415,7 +417,7 @@ def ensure_runtime_volume_ownership(data_dir: Path, workspaces_dir: Path) -> Non
 
     sh_script = (
         "set -eu; "
-        'mkdir -p "$1/postgres" "$1/paperclip" "$1/hermes/profiles" "$1/reports" '
+        'mkdir -p "$1/postgres" "$1/paperclip" "$1/hermes/profiles" "$1/skill-registry" "$1/workers" "$1/reports" '
         '"$1/office-data" "$1/studio-state/hermes3d" "$1/vulnclaw" "$1/secrets" '
         '"$1/office-secrets" "$1/logs" "$2"; '
         'chmod 0755 "$1" "$1/secrets"; '
@@ -423,6 +425,7 @@ def ensure_runtime_volume_ownership(data_dir: Path, workspaces_dir: Path) -> Non
         'chown -R 1000:1000 "$1/paperclip" "$1/office-data" "$1/studio-state" "$1/office-secrets" "$1/logs"; '
         'chmod 0750 "$1/paperclip" "$1/office-data" "$1/studio-state" "$1/studio-state/hermes3d" "$1/office-secrets" "$1/logs"; '
         'chown -R 10001:10001 "$1/hermes" && chmod 0750 "$1/hermes" "$1/hermes/profiles"; '
+        'chown -R 10001:1000 "$1/skill-registry" "$1/workers" && chmod 0755 "$1/skill-registry" "$1/workers"; '
         'chown -R 10002:10002 "$1/vulnclaw" && chmod 0750 "$1/vulnclaw"; '
         'chown -R 10001:1000 "$1/reports" "$2" && chmod 0775 "$1/reports" "$2"; '
         '[ ! -f "$1/secrets/office-bridge-auth.json" ] || (chown 1000:10001 "$1/secrets/office-bridge-auth.json" && chmod 0640 "$1/secrets/office-bridge-auth.json"); '
