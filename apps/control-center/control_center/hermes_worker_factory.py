@@ -191,9 +191,29 @@ def provision_worker_home(
     hermes_home = prof_root / profile_id
     role_meta_dir = wrk_root / role_slug
 
-    for sub in ("memories", "sessions", "skills", "logs", "plans", "workspace", "cron", "home"):
+    for sub in ("memories", "sessions", "skills", "plugins", "logs", "plans", "workspace", "cron", "home"):
         (hermes_home / sub).mkdir(parents=True, exist_ok=True)
     role_meta_dir.mkdir(parents=True, exist_ok=True)
+
+    # Preserve custom plugins installed in `<hermes_home>/plugins/` or already enabled in `config.yaml`.
+    existing_enabled_plugins: list[str] = []
+    existing_disabled_plugins: list[str] = []
+    cfg_path = hermes_home / "config.yaml"
+    if cfg_path.is_file():
+        try:
+            import yaml  # type: ignore[import-not-found]
+            parsed_cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8", errors="ignore")) or {}
+            if isinstance(parsed_cfg, dict) and isinstance(parsed_cfg.get("plugins"), dict):
+                existing_enabled_plugins = [str(x) for x in (parsed_cfg["plugins"].get("enabled") or []) if str(x).strip()]
+                existing_disabled_plugins = [str(x) for x in (parsed_cfg["plugins"].get("disabled") or []) if str(x).strip()]
+        except Exception:
+            pass
+    plugins_dir = hermes_home / "plugins"
+    if plugins_dir.is_dir():
+        for entry in sorted(plugins_dir.iterdir()):
+            if entry.is_dir() and ((entry / "plugin.yaml").is_file() or (entry / "__init__.py").is_file()):
+                if entry.name not in existing_enabled_plugins:
+                    existing_enabled_plugins.append(entry.name)
 
     # BUG-01 FIX: Hermes checks `.no-bundled-skills` (HYPHENS), not `.no_bundled_skills`.
     (hermes_home / ".no_bundled_skills").unlink(missing_ok=True)
@@ -259,6 +279,17 @@ approvals:
   single_query_mode: deny
   unattended_mode: deny
 """
+    if existing_enabled_plugins or existing_disabled_plugins:
+        plugins_lines = ["plugins:"]
+        if existing_enabled_plugins:
+            plugins_lines.append("  enabled:")
+            for p_name in existing_enabled_plugins:
+                plugins_lines.append(f"    - {p_name}")
+        if existing_disabled_plugins:
+            plugins_lines.append("  disabled:")
+            for p_name in existing_disabled_plugins:
+                plugins_lines.append(f"    - {p_name}")
+        config_yaml = config_yaml + "\n".join(plugins_lines) + "\n"
     (hermes_home / "config.yaml").write_text(config_yaml, encoding="utf-8")
 
     py_cmd = "python" if IS_WINDOWS else "python3"
