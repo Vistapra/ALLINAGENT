@@ -42,7 +42,104 @@ function loadWorkerApiKey() {
       return process.env[envKey].trim();
     }
   }
+  const secretsDir = String(process.env.ALLINAGENT_SECRETS_DIR || "/var/lib/allinagent/secrets").trim();
+  const workerEnvPath = path.join(secretsDir, "worker-llm.env");
+  if (fs.existsSync(workerEnvPath)) {
+    try {
+      const raw = fs.readFileSync(workerEnvPath, "utf8");
+      for (const line of raw.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
+        const idx = trimmed.indexOf("=");
+        const k = trimmed.slice(0, idx).trim();
+        const v = trimmed.slice(idx + 1).trim().replace(/^['"]|['"]$/g, "");
+        if ((k === "CUSTOM_API_KEY" || k === "OPENAI_API_KEY" || k === "LLM_API_KEY") && v) {
+          return v;
+        }
+      }
+    } catch {}
+  }
   throw new Error("Worker LLM API key not configured in environment.");
+}
+
+const READONLY_HERMES_PROFILES = new Set([
+  "pcsecuritylead",
+  "pcsecurityreviewer",
+  "pcfindingsanalyst",
+  "pcremediationreviewer",
+]);
+
+const TOOL_OR_DATA_QUERY_RE =
+  /\b(database|basis\s*data|db\b|sql\b|select\s+|schema|skema|tabel|table|query|kueri|data\s+perusahaan|karyawan|pegawai|cabang|divisi|jabatan|absensi|cuti|lembur|kpi\b|penjualan|omzet|revenue|transaksi|produk|menu|bom\b|stok|persediaan|produksi|distribusi|member|pelanggan|promo|karier|hris|mrp|pos\b|resto|kopitiam|bakery|tool|plugin)\b|[a-z]+_[a-z]+_(?:access|schema|query)/i;
+
+function shouldDelegateToHermesTools(userMessage) {
+  return TOOL_OR_DATA_QUERY_RE.test(String(userMessage || ""));
+}
+
+async function callHermesToolCompletion(agent, userMessage, historyMessages = []) {
+  const execUrl = String(process.env.HERMES_REMOTE_EXEC_URL || process.env.HERMES_EXEC_URL || "")
+    .trim()
+    .replace(/\/$/, "");
+  const internalToken = String(
+    process.env.ALLINAGENT_INTERNAL_TOKEN || process.env.HERMES_EXEC_SHARED_SECRET || ""
+  ).trim();
+  if (!execUrl || !internalToken) {
+    throw new Error("Hermes remote execution daemon is not configured.");
+  }
+
+  const rawProfile = String(agent?.runtime_profile_reference || "pcceoagent").trim().toLowerCase();
+  const profile = /^pc[a-z0-9]{2,30}$/.test(rawProfile) ? rawProfile : "pcceoagent";
+  const toolsets = READONLY_HERMES_PROFILES.has(profile) ? "file,skills" : "file,terminal,skills";
+  const model = String(agent?.model_id || process.env.LLM_MODEL || DEFAULT_LLM_MODEL).trim();
+
+  const recentTurns = historyMessages
+    .slice(-4)
+    .filter((h) => (h.role === "user" || h.role === "assistant") && typeof h.content === "string" && h.content.trim())
+    .map((h) => `${h.role === "user" ? "Owner" : agent?.display_name || "Agent"}: ${h.content.trim().slice(0, 600)}`);
+
+  const promptParts = [
+    `Anda adalah ${agent?.display_name || "AI Agent"} (${agent?.title || "Specialist"} — ${agent?.department || "Operations"}).`,
+    `Gunakan tools/plugins yang tersedia pada profil Anda secara langsung bila pertanyaan membutuhkan pengecekan skema atau query database/sistem, lalu jawab ringkas, akurat, dan jelas dalam bahasa pengguna.`,
+    recentTurns.length > 0 ? `Konteks percakapan sebelumnya:\n${recentTurns.join("\n")}` : null,
+    `Pertanyaan pengguna saat ini:\n${userMessage}`,
+  ].filter(Boolean);
+
+  const resp = await fetch(`${execUrl}/v1/exec`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Exec-Token": internalToken,
+    },
+    body: JSON.stringify({
+      profile,
+      argv: [
+        "chat",
+        "-Q",
+        "--oneshot",
+        "-m",
+        model,
+        "--provider",
+        "custom",
+        "-t",
+        toolsets,
+        "--max-turns",
+        "10",
+      ],
+      query_file_content: promptParts.join("\n\n"),
+      timeout_sec: 95,
+    }),
+    signal: AbortSignal.timeout(100_000),
+  });
+
+  if (!resp.ok) {
+    throw new Error(`Hermes exec HTTP ${resp.status}`);
+  }
+  const data = await resp.json();
+  const cleaned = typeof data?.stdout === "string" ? sanitizeText(data.stdout.trim()) : "";
+  if (data?.exit_code !== 0 || !cleaned) {
+    throw new Error(`Hermes tool chat failed (exit=${data?.exit_code})`);
+  }
+  return cleaned;
 }
 
 function historyFileForAgent(agentId) {
@@ -764,11 +861,28 @@ async function handleEmployeeChatTurn({
   );
 
   let replyText;
+  const preferHermesTools =
+    !deepInspection?.ok &&
+    executionReceipts.length === 0 &&
+    !explicitPathWarning &&
+    shouldDelegateToHermesTools(cleanUserMsg);
+
   try {
-    replyText = await callLlmCompletion(systemPrompt, cleanHistoryForPrompt, cleanUserMsg, {
-      fastActionReply: executionReceipts.length > 0,
-      rejectFalseRefusal: Boolean(deepInspection?.ok || executionReceipts.length > 0 || !explicitPathWarning),
-    });
+    if (preferHermesTools) {
+      try {
+        replyText = await callHermesToolCompletion(agent, cleanUserMsg, cleanHistoryForPrompt);
+      } catch {
+        replyText = await callLlmCompletion(systemPrompt, cleanHistoryForPrompt, cleanUserMsg, {
+          fastActionReply: false,
+          rejectFalseRefusal: true,
+        });
+      }
+    } else {
+      replyText = await callLlmCompletion(systemPrompt, cleanHistoryForPrompt, cleanUserMsg, {
+        fastActionReply: executionReceipts.length > 0,
+        rejectFalseRefusal: Boolean(deepInspection?.ok || executionReceipts.length > 0 || !explicitPathWarning),
+      });
+    }
     if (deepInspection?.ok) {
       const sampleMarkers =
         deepInspection.kind === "file"
@@ -794,7 +908,11 @@ async function handleEmployeeChatTurn({
     } else if (explicitPathWarning) {
       replyText = `Folder atau file tersebut tidak dapat dibuka: **${explicitPathWarning}**.\n\nSilakan pilih folder proyek yang berada di dalam direktori workspace terotorisasi (\`workspaces/\`, \`reports/\`, \`docs/\`) melalui tombol **📁 Folder Target**.`;
     } else {
-      replyText = `Halo, saya **${agent.display_name}** (${agent.title} — ${agent.department}). Saya terhubung penuh ke workspace terotorisasi, Paperclip Control Plane, dan Telegram Gateway (\`${TELEGRAM_BOT_USERNAME}\`). Silakan pilih folder melalui tombol **📁 Folder Target** atau kirim path proyek untuk kita analisis bersama!`;
+      try {
+        replyText = await callHermesToolCompletion(agent, cleanUserMsg, cleanHistoryForPrompt);
+      } catch {
+        replyText = `Halo, saya **${agent.display_name}** (${agent.title} — ${agent.department}). Saya terhubung penuh ke workspace terotorisasi, Paperclip Control Plane, dan Telegram Gateway (\`${TELEGRAM_BOT_USERNAME}\`). Silakan pilih folder melalui tombol **📁 Folder Target** atau kirim path proyek untuk kita analisis bersama!`;
+      }
     }
   }
 
