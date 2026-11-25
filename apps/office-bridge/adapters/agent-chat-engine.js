@@ -69,11 +69,17 @@ const READONLY_HERMES_PROFILES = new Set([
   "pcremediationreviewer",
 ]);
 
-const TOOL_OR_DATA_QUERY_RE =
-  /\b(database|basis\s*data|db\b|sql\b|select\s+|schema|skema|tabel|table|query|kueri|data\s+perusahaan|karyawan|pegawai|cabang|divisi|jabatan|absensi|cuti|lembur|kpi\b|penjualan|omzet|revenue|transaksi|produk|menu|bom\b|stok|persediaan|produksi|distribusi|member|pelanggan|promo|karier|hris|mrp|pos\b|resto|kopitiam|bakery|tool|plugin)\b|[a-z]+_[a-z]+_(?:access|schema|query)/i;
+const EXPLICIT_TOOL_TRIGGER_RE = /^(?:\/db|\/database|@db|\[db\])(?:\s+|$)/i;
 
 function shouldDelegateToHermesTools(userMessage) {
-  return TOOL_OR_DATA_QUERY_RE.test(String(userMessage || ""));
+  return EXPLICIT_TOOL_TRIGGER_RE.test(String(userMessage || "").trim());
+}
+
+function stripExplicitToolTrigger(userMessage) {
+  return String(userMessage || "")
+    .trim()
+    .replace(/^(?:\/db|\/database|@db|\[db\])\s*/i, "")
+    .trim();
 }
 
 async function callHermesToolCompletion(agent, userMessage, historyMessages = []) {
@@ -869,14 +875,8 @@ async function handleEmployeeChatTurn({
 
   try {
     if (preferHermesTools) {
-      try {
-        replyText = await callHermesToolCompletion(agent, cleanUserMsg, cleanHistoryForPrompt);
-      } catch {
-        replyText = await callLlmCompletion(systemPrompt, cleanHistoryForPrompt, cleanUserMsg, {
-          fastActionReply: false,
-          rejectFalseRefusal: true,
-        });
-      }
+      const triggeredPrompt = stripExplicitToolTrigger(cleanUserMsg) || "Cek status akses database.";
+      replyText = await callHermesToolCompletion(agent, triggeredPrompt, cleanHistoryForPrompt);
     } else {
       replyText = await callLlmCompletion(systemPrompt, cleanHistoryForPrompt, cleanUserMsg, {
         fastActionReply: executionReceipts.length > 0,
@@ -908,11 +908,7 @@ async function handleEmployeeChatTurn({
     } else if (explicitPathWarning) {
       replyText = `Folder atau file tersebut tidak dapat dibuka: **${explicitPathWarning}**.\n\nSilakan pilih folder proyek yang berada di dalam direktori workspace terotorisasi (\`workspaces/\`, \`reports/\`, \`docs/\`) melalui tombol **📁 Folder Target**.`;
     } else {
-      try {
-        replyText = await callHermesToolCompletion(agent, cleanUserMsg, cleanHistoryForPrompt);
-      } catch {
-        replyText = `Halo, saya **${agent.display_name}** (${agent.title} — ${agent.department}). Saya terhubung penuh ke workspace terotorisasi, Paperclip Control Plane, dan Telegram Gateway (\`${TELEGRAM_BOT_USERNAME}\`). Silakan pilih folder melalui tombol **📁 Folder Target** atau kirim path proyek untuk kita analisis bersama!`;
-      }
+      replyText = `Halo, saya **${agent.display_name}** (${agent.title} — ${agent.department}). Saya terhubung penuh ke workspace terotorisasi, Paperclip Control Plane, dan Telegram Gateway (\`${TELEGRAM_BOT_USERNAME}\`). Silakan pilih folder melalui tombol **📁 Folder Target** atau kirim path proyek untuk kita analisis bersama!`;
     }
   }
 
