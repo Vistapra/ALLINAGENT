@@ -486,9 +486,15 @@ def prompt_value(label: str, default: str, non_interactive: bool, secret: bool =
     return entered if entered else default
 
 
-def is_valid_secret_value(val: str) -> bool:
+SECRET_MIN_LENGTH = {
+    # Owner-chosen Studio login password: honoured if >= 8 chars (never silently regenerated).
+    "STUDIO_ACCESS_TOKEN": 8,
+}
+
+
+def is_valid_secret_value(val: str, key: str = "") -> bool:
     clean = val.strip()
-    if len(clean) < 24:
+    if len(clean) < SECRET_MIN_LENGTH.get(key, 24):
         return False
     lower = clean.lower()
     if "replace" in lower or "changeme" in lower or "placeholder" in lower or clean.startswith("<"):
@@ -500,7 +506,7 @@ def has_all_required_secrets(env_file: Path) -> bool:
     if not env_file.is_file():
         return False
     env_map = resolve_effective_env(env_file)
-    return all(is_valid_secret_value(env_map.get(k, "")) for k in REQUIRED_AUTO_SECRETS)
+    return all(is_valid_secret_value(env_map.get(k, ""), k) for k in REQUIRED_AUTO_SECRETS)
 
 
 def provision_env_and_secrets(
@@ -562,7 +568,7 @@ def provision_env_and_secrets(
         val = existing.get(key, "").strip()
         if not val and fallback_key:
             val = existing.get(fallback_key, "").strip()
-        if not rotate_secrets and is_valid_secret_value(val):
+        if not rotate_secrets and is_valid_secret_value(val, key):
             return val
         return f"{prefix}{secrets.token_hex(nbytes)}"
 
